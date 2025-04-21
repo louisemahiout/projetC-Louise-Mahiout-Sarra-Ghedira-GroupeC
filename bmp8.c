@@ -55,8 +55,70 @@ t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la 
 }
 
 
+void bmp8_saveImage(const char * filename, t_bmp8 * img) {
+    // Étape 1 : ouvrir le fichier en écriture binaire
+    FILE *file = fopen(filename, "wb");  // "wb" = write binary
+    if (file == NULL) {
+        printf("Erreur : impossible de créer le fichier %s\n", filename);
+        return;
+    }
+    // Étape 2 : écrire l’en-tête (54 octets)
+    size_t written = fwrite(img->header, sizeof(unsigned char), 54, file);
+    if (written != 54) {
+        printf("Erreur : échec de l’écriture de l’en-tête dans le fichier %s\n", filename);
+        fclose(file);
+        return;
+    }
+    // Étape 3 : écrire la table des couleurs (palette : 256 x 4 = 1024 octets)
+    written = fwrite(img->colorTable, sizeof(unsigned char), 1024, file);
+    if (written != 1024) {
+        printf("Erreur : échec de l’écriture de la palette dans le fichier %s\n", filename);
+        fclose(file);
+        return;
+    }
+    // Étape 4 : écrire les données de l’image (pixels)
+    written = fwrite(img->data, sizeof(unsigned char), img->dataSize, file);
+    if (written != img->dataSize) {
+        printf("Erreur : échec de l’écriture des données dans le fichier %s\n", filename);
+        fclose(file);
+        return;
+    }
+    // Étape 5 : fermer le fichier
+    fclose(file);
+    printf("Image enregistrée avec succès dans le fichier %s\n", filename);
+}
 
 
-void bmp8_saveImage(const char * filename, t_bmp8 * img);
-void bmp8_free(t_bmp8 * img);
-void bmp8_printInfo(t_bmp8 * img);
+void bmp8_free(t_bmp8 * img) {
+    // on vérifie que le pointeur n’est pas NULL avant de libérer
+    if (img == NULL) {
+        return;  // on a rien à libérer
+    }
+    // Libérer les données de l’image si elles ont été allouées
+    if (img->data != NULL) {
+        free(img->data);
+        img->data = NULL;  // on annule le pointeur au cas où
+    }
+    // Libérer la structure elle-même
+    free(img);
+    img = NULL;  //à voir si c'est vraiment utile
+}
+
+
+void bmp8_printInfo(t_bmp8 * img) {
+    if (img == NULL) {
+        printf("Erreur : image vide (pointeur NULL).\n");
+        return;
+    }
+    // Affichage des infos
+    printf("Image Info:\n");
+    printf("Width: %u\n", img->width);
+    printf("Height: %u\n", img->height);
+    printf("Color Depth: %u\n", img->colorDepth);
+    printf("Data Size: %u\n", img->dataSize);
+}
+
+
+void bmp8_negative(t_bmp8 * img);
+void bmp8_brightness(t_bmp8 * img, int value);
+void bmp8_threshold(t_bmp8 * img, int threshold);
