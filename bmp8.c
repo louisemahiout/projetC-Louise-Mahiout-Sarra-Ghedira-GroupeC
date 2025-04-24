@@ -4,6 +4,8 @@
 #include "bmp8.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h> // pour round()
+#include <string.h>
 //utile pour malloc
 
 t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la mémoire pour stocker une image de type t_bmp8, initialisera les champs de cette image et retournera un pointeur vers cette image.
@@ -85,7 +87,7 @@ void bmp8_saveImage(const char * filename, t_bmp8 * img) {
     }
     // Étape 5 : fermer le fichier
     fclose(file);
-    printf("Image enregistrée avec succès dans le fichier %s\n", filename);
+    printf("Image enregistree avec succes dans le fichier %s\n", filename);
 }
 
 
@@ -118,8 +120,105 @@ void bmp8_printInfo(t_bmp8 * img) {
     printf("Data Size: %u\n", img->dataSize);
 }
 
+void bmp8_negative(t_bmp8 * img) {
+    if (img == NULL || img->data == NULL) {
+        printf("Erreur : image non chargee.\n");
+        return;
+    }
 
-void bmp8_negative(t_bmp8 * img);
+    for (unsigned int i = 0; i < img->dataSize; i++) {
+        img->data[i] = 255 - img->data[i];  // inversion
+    }
 
-void bmp8_brightness(t_bmp8 * img, int value);
-void bmp8_threshold(t_bmp8 * img, int threshold);
+    printf("Filtre negatif applique avec succes !\n");
+}
+
+
+void bmp8_brightness(t_bmp8 * img, int value) {
+    if (img == NULL || img->data == NULL) {
+        printf("Erreur : image non chargée.\n");
+        return;
+    }
+
+    for (unsigned int i = 0; i < img->dataSize; i++) {
+        int pixel = img->data[i] + value;
+
+        if (pixel > 255) {
+            pixel = 255;
+        } else if (pixel < 0) {
+            pixel = 0;
+        }
+
+        img->data[i] = (unsigned char)pixel;
+    }
+
+    printf("Luminosité ajustée avec succès (value = %d).\n", value);
+}
+
+
+void bmp8_threshold(t_bmp8 * img, int threshold) {
+    if (img == NULL || img->data == NULL) {
+        printf("Erreur : image non chargée.\n");
+        return;
+    }
+
+    for (unsigned int i = 0; i < img->dataSize; i++) {
+        if (img->data[i] >= threshold) {
+            img->data[i] = 255;
+        } else {
+            img->data[i] = 0;
+        }
+    }
+
+    printf("Seuillage appliqué avec succès (threshold = %d).\n", threshold);
+}
+
+
+void bmp8_applyFilter(t_bmp8 *img, float **kernel, int kernelSize) {
+    if (img == NULL || img->data == NULL) {
+        printf("Erreur : image non chargée.\n");
+        return;
+    }
+
+    int width = img->width;
+    int height = img->height;
+    int offset = kernelSize / 2;
+
+    // Allocation de la mémoire pour stocker temporairement l'image filtrée
+    unsigned char *result = malloc(img->dataSize);
+    if (result == NULL) {
+        printf("Erreur : échec de l’allocation mémoire pour l’image filtrée.\n");
+        return;
+    }
+
+    // Copie de l'image originale pour éviter de modifier l'image en direct
+    memcpy(result, img->data, img->dataSize);
+
+    // Application de la convolution (en ignorant les bords)
+    for (int y = offset; y < height - offset; y++) {
+        for (int x = offset; x < width - offset; x++) {
+            float sum = 0.0f;
+
+            for (int i = -offset; i <= offset; i++) {
+                for (int j = -offset; j <= offset; j++) {
+                    int pixel = img->data[(y + i) * width + (x + j)];
+                    float coeff = kernel[i + offset][j + offset];
+                    sum += pixel * coeff;
+                }
+            }
+
+            // Clamp la valeur finale dans [0, 255]
+            int newValue = (int)roundf(sum);
+            if (newValue < 0) newValue = 0;
+            if (newValue > 255) newValue = 255;
+
+            result[y * width + x] = (unsigned char)newValue;
+        }
+    }
+
+    // Remplace les données d’origine par le résultat filtré
+    memcpy(img->data, result, img->dataSize);
+    free(result);
+
+    printf("Filtre de convolution appliqué avec succès !\n");
+}
