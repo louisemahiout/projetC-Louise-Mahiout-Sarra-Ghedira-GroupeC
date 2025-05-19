@@ -62,6 +62,7 @@ t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la 
 void bmp8_saveImage(const char * filename, t_bmp8 * img) {
     // Étape 1 : ouvrir le fichier en écriture binaire
     FILE *file = fopen(filename, "wb");  // "wb" = write binary
+    printf("%s\n", filename);
     if (file == NULL) {
         printf("Erreur : impossible de créer le fichier %s\n", filename);
         return;

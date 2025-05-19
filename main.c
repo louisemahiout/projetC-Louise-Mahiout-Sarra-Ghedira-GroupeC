@@ -3,6 +3,8 @@
 #include <string.h>
 #include "bmp8.h"
 
+#define CHEMIN_FICHIER_SORTIE "images_sortie/"
+
 float **allocateKernel(const float values[9]) {
     float **kernel = malloc(3 * sizeof(float *));
     if (!kernel) return NULL;
@@ -26,28 +28,17 @@ void freeKernel(float **kernel) {
 
 int main() {
     t_bmp8 *image = NULL;
-    //char nomFichier[256] = "../barbara_gray.bmp";
-    //char nomFichier[256] = "essai2.bmp";
-    char nomFichier[256] = "../lena.bmp";
+    char nomFichier[256] = "images_entree/lena.bmp";
     int choix;
 
 
     image = bmp8_loadImage(nomFichier);
     if (image != NULL) {
-        printf("Image %s chargée automatiquement au démarrage.\n", nomFichier);
+        printf("Image %s chargee automatiquement au demarrage.\n", nomFichier);
     } else {
         printf("Erreur : impossible de charger l’image %s.\n", nomFichier);
         return 1;
     }
-    //TEST
-    /*
-    bmp8_saveImage("copy_out.bmp", image);
-    //TEST
-
-    for (int i=0;i<54;i++)
-        //printf("%d ",image->header[i]);
-    return 0;
-    */
 
     while (1) {
         printf("\n===== MENU =====\n");
@@ -65,9 +56,11 @@ int main() {
                 break;
 
             case 2: {
-                char nomSortie[256];
+                char nomSortie[256] = CHEMIN_FICHIER_SORTIE;
+                char tmp[256];
                 printf("Nom du fichier de sauvegarde : ");
-                scanf("%255s", nomSortie);
+                scanf("%255s", tmp);
+                strcat(nomSortie, tmp);
                 bmp8_saveImage(nomSortie, image);
                 break;
             }
