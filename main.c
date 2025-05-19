@@ -26,8 +26,11 @@ void freeKernel(float **kernel) {
 
 int main() {
     t_bmp8 *image = NULL;
-    char nomFichier[256] = "../barbara_gray.bmp";
+    //char nomFichier[256] = "../barbara_gray.bmp";
+    //char nomFichier[256] = "essai2.bmp";
+    char nomFichier[256] = "../lena.bmp";
     int choix;
+
 
     image = bmp8_loadImage(nomFichier);
     if (image != NULL) {
@@ -36,6 +39,15 @@ int main() {
         printf("Erreur : impossible de charger l’image %s.\n", nomFichier);
         return 1;
     }
+    //TEST
+    /*
+    bmp8_saveImage("copy_out.bmp", image);
+    //TEST
+
+    for (int i=0;i<54;i++)
+        //printf("%d ",image->header[i]);
+    return 0;
+    */
 
     while (1) {
         printf("\n===== MENU =====\n");
@@ -84,7 +96,7 @@ int main() {
 
                     case 2: {
                         int value;
-                        printf("Valeur de luminosite (+/-) : ");
+                        printf("Valeur de luminosite (ex: +30/-30) : ");
                         scanf("%d", &value);
                         bmp8_brightness(image, value);
                         break;
@@ -165,7 +177,7 @@ int main() {
             }
 
             case 4:
-                bmp8_free(image);
+                bmp8_free(&image);
                 printf("Fermeture du programme.\n");
                 return 0;
 

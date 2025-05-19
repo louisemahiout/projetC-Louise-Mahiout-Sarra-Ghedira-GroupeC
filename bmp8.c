@@ -3,10 +3,10 @@
 //
 #include "bmp8.h"
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>//utile pour malloc
 #include <math.h> // pour round()
 #include <string.h>
-//utile pour malloc
+
 
 t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la mémoire pour stocker une image de type t_bmp8, initialisera les champs de cette image et retournera un pointeur vers cette image.
     FILE * file=fopen(filename,"rb"); // Étape 1 : ouvrir le fichier en mode binaire ("rb" = read binary)
@@ -28,7 +28,8 @@ t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la 
     image->width = *(unsigned int*)&image->header[18]; // Offset 18 (4 octets)
     image->height = *(unsigned int*)&image->header[22]; // Offset 22 (4 octets)
     image->colorDepth= *(unsigned short*)&image->header[28]; //Offset 28 (2 octets)
-    image->dataSize= *(unsigned int*)&image->header[34]; //Offset 34 (4 octets)
+    //image->dataSize= *(unsigned int*)&image->header[34]; //Offset 34 (4 octets) // est à 0...
+    image->dataSize= (image->width * image->height) * (image->colorDepth/8); // car dataSize à 0... (?)
 
     // Étape 5 : vérifier que c’est bien une image en niveaux de gris (8 bits)
     if (image->colorDepth !=8) {
@@ -37,6 +38,7 @@ t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la 
         free(image);
         return NULL;
     }
+
     // Étape 6 : lire la table de couleurs (palette) — 256 entrées x 4 octets = 1024 octets
     fread(image->colorTable,sizeof(unsigned char),1024,file);
 
@@ -91,19 +93,19 @@ void bmp8_saveImage(const char * filename, t_bmp8 * img) {
 }
 
 
-void bmp8_free(t_bmp8 * img) {
+void bmp8_free(t_bmp8 ** img) {
     // on vérifie que le pointeur n’est pas NULL avant de libérer
-    if (img == NULL) {
+    if (*img == NULL) {
         return;  // on a rien à libérer
     }
     // Libérer les données de l’image si elles ont été allouées
-    if (img->data != NULL) {
-        free(img->data);
-        img->data = NULL;  // on annule le pointeur au cas où
+    if ((*img)->data != NULL) {
+        free((*img)->data);
+        (*img)->data = NULL;  // on annule le pointeur au cas où
     }
     // Libérer la structure elle-même
-    free(img);
-    img = NULL;  //à voir si c'est vraiment utile
+    free(*img);
+    *img = NULL;  //à voir si c'est vraiment utile
 }
 
 
