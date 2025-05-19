@@ -3,7 +3,7 @@
 #include <string.h>
 #include "bmp8.h"
 
-#define CHEMIN_FICHIER_SORTIE "images_sortie/"
+#define CHEMIN_FICHIER_SORTIE "images_sortie/"////essai
 
 float **allocateKernel(const float values[9]) {
     float **kernel = malloc(3 * sizeof(float *));
@@ -58,7 +58,7 @@ int main() {
             case 2: {
                 char nomSortie[256] = CHEMIN_FICHIER_SORTIE;
                 char tmp[256];
-                printf("Nom du fichier de sauvegarde : ");
+                printf("Nom du fichier de sauvegarde (ajouter .bmp à la fin) : ");
                 scanf("%255s", tmp);
                 strcat(nomSortie, tmp);
                 bmp8_saveImage(nomSortie, image);
