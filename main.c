@@ -3,7 +3,7 @@
 #include <string.h>
 #include "bmp8.h"
 
-#define CHEMIN_FICHIER_SORTIE "images_sortie/"////essai
+#define CHEMIN_FICHIER_SORTIE "images_sortie/"////essaibdskqhbvkqdbjvqdsbj
 
 float **allocateKernel(const float values[9]) {
     float **kernel = malloc(3 * sizeof(float *));
