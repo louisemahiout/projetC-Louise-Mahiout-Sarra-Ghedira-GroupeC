@@ -8,6 +8,7 @@
 #include <string.h>
 
 
+
 t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la mémoire pour stocker une image de type t_bmp8, initialisera les champs de cette image et retournera un pointeur vers cette image.
     FILE * file=fopen(filename,"rb"); // Étape 1 : ouvrir le fichier en mode binaire ("rb" = read binary)
     if (file==NULL) {
@@ -225,3 +226,6 @@ void bmp8_applyFilter(t_bmp8 *img, float **kernel, int kernelSize) {
 
     printf("Filtre de convolution appliqué avec succès !\n");
 }
+
+
+

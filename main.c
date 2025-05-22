@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "bmp8.h"
+#include<stdint.h>
 
-#define CHEMIN_FICHIER_SORTIE "images_sortie/"////essaibdskqhbvkqdbjvqdsbj
+#define CHEMIN_FICHIER_SORTIE "images_sortie/"
 
 float **allocateKernel(const float values[9]) {
     float **kernel = malloc(3 * sizeof(float *));
@@ -28,7 +29,7 @@ void freeKernel(float **kernel) {
 
 int main() {
     t_bmp8 *image = NULL;
-    char nomFichier[256] = "images_entree/lena.bmp";
+    char nomFichier[256] = "images_entree/barbara_gray.bmp";
     int choix;
 
 
@@ -43,8 +44,8 @@ int main() {
     while (1) {
         printf("\n===== MENU =====\n");
         printf("1. Afficher les informations de l'image\n");
-        printf("2. Sauvegarder l'image\n");
-        printf("3. Appliquer un filtre\n");
+        printf("2. Appliquer un filtre\n");
+        printf("3. Sauvegarder l'image\n");
         printf("4. Quitter\n");
         printf(">>> Votre choix : ");
         scanf("%d", &choix);
@@ -55,7 +56,7 @@ int main() {
                 bmp8_printInfo(image);
                 break;
 
-            case 2: {
+            case 3: {
                 char nomSortie[256] = CHEMIN_FICHIER_SORTIE;
                 char tmp[256];
                 printf("Nom du fichier de sauvegarde (ajouter .bmp à la fin) : ");
@@ -65,7 +66,7 @@ int main() {
                 break;
             }
 
-            case 3: {
+            case 2: {
                 int filtre;
                 printf("\n-- Choisir un filtre --\n");
                 printf("1. Negatif\n");
