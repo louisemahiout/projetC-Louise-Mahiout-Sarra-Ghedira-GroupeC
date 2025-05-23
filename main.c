@@ -53,6 +53,7 @@ int main() {
         printf("6. Afficher les informations de l'image couleur\n");
         printf("7. Libérer l'image couleur\n");
         printf("8. sauvegarder\n");
+        printf("9. Appliquer un traitement à l’image couleur\n");
         printf(">>> Votre choix : ");
         scanf("%d", &choix);
         getchar();
@@ -198,6 +199,8 @@ int main() {
                 } else {
                     printf("Erreur lors du chargement de l’image couleur \"%s\".\n", fichier24);
                 }
+
+
                 break;
             }
 
@@ -229,19 +232,65 @@ int main() {
                 if (image24) {
                     char nomSortie[256] = CHEMIN_FICHIER_SORTIE;
                     char tmp[256];
-                    printf("Nom du fichier de sauvegarde couleur (ajouter .bmp à la fin) : ");
+                    printf("Nom du fichier de sauvegarde couleur (ex: flowers_negative.bmp) : ");
                     scanf("%255s", tmp);
+
+                    // Concaténer le chemin de sortie avec le nom du fichier
                     strcat(nomSortie, tmp);
+
+                    // Sauvegarder l'image
                     bmp24_saveImage(image24, nomSortie);
-                    printf("Image couleur sauvegardée avec succès.\n");
+
+                    printf("Image couleur sauvegardée avec succès sous : %s\n", nomSortie);
                 } else {
                     printf("Aucune image couleur à sauvegarder.\n");
                 }
                 break;
             }
+
+            case 9: {
+                if (!image24) {
+                    printf("Aucune image couleur chargée.\n");
+                    break;
+                }
+
+                int op;
+                printf("\n-- Choisir un traitement pour l’image couleur --\n");
+                printf("1. Négatif\n");
+                printf("2. Niveau de gris\n");
+                printf("3. Luminosité\n");
+                printf(">>> Votre choix : ");
+                scanf("%d", &op);
+
+                switch (op) {
+                    case 1:
+                        bmp24_negative(image24);
+                    printf("Négatif appliqué.\n");
+                    break;
+                    case 2:
+                        bmp24_grayscale(image24);
+                    printf("Conversion en niveaux de gris appliquée.\n");
+                    break;
+                    case 3: {
+                        int v;
+                        printf("Valeur de luminosité (+/-) : ");
+                        scanf("%d", &v);
+                        bmp24_brightness(image24, v);
+                        printf("Luminosité ajustée.\n");
+                        break;
+                    }
+                    default:
+                        printf("Option invalide.\n");
+                }
+
+                break;
+            }
+
             default:
                 printf("Choix invalide. Veuillez réessayer.\n");
         }
+
+
     }
 
     return 0;

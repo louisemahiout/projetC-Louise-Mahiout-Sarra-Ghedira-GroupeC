@@ -299,10 +299,13 @@ void bmp24_readPixelValue(t_bmp24 *image, int x, int y, FILE *file) {
 }
 
 void bmp24_readPixelData(t_bmp24 *image, FILE *file) {
-    for (int y = 0; y < image->height; y++) {
-        for (int x = 0; x < image->width; x++) {
-            bmp24_readPixelValue(image, x, y, file);
+    int padding = (4 - (image->width * 3) % 4) % 4;
+
+    for (int i = 0; i < image->height; i++) {
+        for (int j = 0; j < image->width; j++) {
+            fread(&image->data[image->height - i - 1][j], sizeof(t_pixel), 1, file);
         }
+        fseek(file, padding, SEEK_CUR); // Ignorer les octets de padding
     }
 }
 
@@ -325,6 +328,7 @@ void bmp24_writePixelData(t_bmp24 *image, FILE *file) {
         }
     }
 }
+
 t_bmp24 *bmp24_loadImage(const char *filename) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
@@ -353,15 +357,19 @@ t_bmp24 *bmp24_loadImage(const char *filename) {
     img->header = header;
     img->header_info = info;
 
-    // Lire les pixels (de bas en haut, sans padding)
-    for (int y = 0; y < info.height; y++) {
+    int padding = (4 - (info.width * 3) % 4) % 4;
+
+    fseek(file, header.offset, SEEK_SET); // ⚠️ Très important : aller au début des données pixel
+
+    for (int y = info.height - 1; y >= 0; y--) {
         for (int x = 0; x < info.width; x++) {
             uint8_t bgr[3];
-            fread(bgr, sizeof(uint8_t), 3, file);
-            img->data[info.height - 1 - y][x].blue = bgr[0];
-            img->data[info.height - 1 - y][x].green = bgr[1];
-            img->data[info.height - 1 - y][x].red = bgr[2];
+            fread(bgr, 1, 3, file);
+            img->data[y][x].blue  = bgr[0];
+            img->data[y][x].green = bgr[1];
+            img->data[y][x].red   = bgr[2];
         }
+        fseek(file, padding, SEEK_CUR); // ignorer le padding
     }
 
     fclose(file);
@@ -376,9 +384,80 @@ void bmp24_saveImage(t_bmp24 *img, const char *filename) {
         return;
     }
 
-    file_rawWrite(BITMAP_MAGIC, &img->header, sizeof(t_bmp_header), 1, file);
-    file_rawWrite(BITMAP_SIZE, &img->header_info, sizeof(t_bmp_info), 1, file);
+    int padding = (4 - (img->width * 3) % 4) % 4;
+    int rowSizeWithPadding = img->width * 3 + padding;
+    int pixelArraySize = rowSizeWithPadding * img->height;
 
-    bmp24_writePixelData(img, file);
+    // Mise à jour des champs de l'en-tête
+    img->header.type = BMP_TYPE;          // "BM"
+    img->header.offset = 54;
+    img->header.size = 54 + pixelArraySize;
+    img->header.reserved1 = 0;
+    img->header.reserved2 = 0;
+
+    img->header_info.size = 40;
+    img->header_info.width = img->width;
+    img->header_info.height = img->height;
+    img->header_info.planes = 1;
+    img->header_info.bits = 24;
+    img->header_info.compression = 0;
+    img->header_info.imagesize = pixelArraySize;
+    img->header_info.xresolution = 2835;
+    img->header_info.yresolution = 2835;
+    img->header_info.ncolors = 0;
+    img->header_info.importantcolors = 0;
+
+    // Écriture des headers
+    fwrite(&img->header, sizeof(t_bmp_header), 1, file);
+    fwrite(&img->header_info, sizeof(t_bmp_info), 1, file);
+
+    // Écriture des pixels de bas en haut
+    uint8_t pad[3] = {0, 0, 0};
+    for (int y = img->height - 1; y >= 0; y--) {
+        for (int x = 0; x < img->width; x++) {
+            uint8_t bgr[3] = {
+                img->data[y][x].blue,
+                img->data[y][x].green,
+                img->data[y][x].red
+            };
+            fwrite(bgr, 1, 3, file);
+        }
+        fwrite(pad, 1, padding, file);
+    }
+
     fclose(file);
+}
+
+void bmp24_negative(t_bmp24 *img) {
+    printf("width : %d  height : %d \n", img->width, img->height);
+    for (int x = 0; x < img->width; x++) {
+        for (int y = 0; y < img->height; y++) {
+            img->data[x][y].red   = 255 - img->data[x][y].red;
+            img->data[x][y].green = 255 - img->data[x][y].green;
+            img->data[x][y].blue  = 255 - img->data[x][y].blue;
+        }
+    }
+}
+void bmp24_grayscale(t_bmp24 *img) {
+    for (int y = 0; y < img->height; y++) {
+        for (int x = 0; x < img->width; x++) {
+            uint8_t gray = (img->data[y][x].red + img->data[y][x].green + img->data[y][x].blue) / 3;
+            img->data[y][x].red = gray;
+            img->data[y][x].green = gray;
+            img->data[y][x].blue = gray;
+        }
+    }
+}
+void bmp24_brightness(t_bmp24 *img, int value) {
+    for (int y = 0; y < img->height; y++) {
+        for (int x = 0; x < img->width; x++) {
+            int r = img->data[y][x].red + value;
+            int g = img->data[y][x].green + value;
+            int b = img->data[y][x].blue + value;
+
+            img->data[y][x].red   = (r > 255) ? 255 : (r < 0) ? 0 : r;
+            img->data[y][x].green = (g > 255) ? 255 : (g < 0) ? 0 : g;
+            img->data[y][x].blue  = (b > 255) ? 255 : (b < 0) ? 0 : b;
+        }
+    }
 }

@@ -89,6 +89,9 @@ void bmp24_readPixelValue(t_bmp24 *image, int x, int y, FILE *file);
 void bmp24_readPixelData(t_bmp24 *image, FILE *file);
 void bmp24_writePixelValue(t_bmp24 *image, int x, int y, FILE *file);
 void bmp24_writePixelData(t_bmp24 *image, FILE *file);
+void bmp24_negative(t_bmp24 *img);
+void bmp24_grayscale(t_bmp24 *img);
+void bmp24_brightness(t_bmp24 *img, int value);
 
 
 #endif //BMP8_H
