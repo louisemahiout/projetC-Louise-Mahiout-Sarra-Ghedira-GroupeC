@@ -226,6 +226,159 @@ void bmp8_applyFilter(t_bmp8 *img, float **kernel, int kernelSize) {
 
     printf("Filtre de convolution appliqué avec succès !\n");
 }
+t_pixel **bmp24_allocateDataPixels(int width, int height) {
+    t_pixel **pixels = malloc(height * sizeof(t_pixel *));
+    if (!pixels) {
+        fprintf(stderr, "Erreur d'allocation de lignes de pixels.\n");
+        return NULL;
+    }
+
+    for (int i = 0; i < height; i++) {
+        pixels[i] = malloc(width * sizeof(t_pixel));
+        if (!pixels[i]) {
+            fprintf(stderr, "Erreur d'allocation de pixels pour la ligne %d.\n", i);
+            // Libérer les lignes déjà allouées
+            for (int j = 0; j < i; j++) {
+                free(pixels[j]);
+            }
+            free(pixels);
+            return NULL;
+        }
+    }
+
+    return pixels;
+}
+
+void bmp24_freeDataPixels(t_pixel **pixels, int height) {
+    if (!pixels) return;
+    for (int i = 0; i < height; i++) {
+        free(pixels[i]);
+    }
+    free(pixels);
+}
+
+t_bmp24 *bmp24_allocate(int width, int height, int colorDepth) {
+    t_bmp24 *img = malloc(sizeof(t_bmp24));
+    if (!img) return NULL;
+
+    img->width = width;
+    img->height = height;
+    img->colorDepth = colorDepth;
+
+    img->data = malloc(height * sizeof(t_pixel *));
+    for (int i = 0; i < height; i++) {
+        img->data[i] = malloc(width * sizeof(t_pixel));
+    }
+
+    return img;
+}
+
+void bmp24_free(t_bmp24 *img) {
+    if (!img) return;
+    bmp24_freeDataPixels(img->data, img->height);
+    free(img);
+}
+void file_rawRead(uint32_t position, void *buffer, uint32_t size, size_t n, FILE *file) {
+    fseek(file, position, SEEK_SET);
+    fread(buffer, size, n, file);
+}
+
+void file_rawWrite(uint32_t position, void *buffer, uint32_t size, size_t n, FILE *file) {
+    fseek(file, position, SEEK_SET);
+    fwrite(buffer, size, n, file);
+}
+void bmp24_readPixelValue(t_bmp24 *image, int x, int y, FILE *file) {
+    uint8_t bgr[3];
+    int imageY = image->height - 1 - y;  // Inverser la ligne (bas -> haut)
+    uint32_t offset = image->header.offset + (imageY * image->width + x) * 3;
+
+    file_rawRead(offset, bgr, 1, 3, file);
+    image->data[y][x].blue  = bgr[0];
+    image->data[y][x].green = bgr[1];
+    image->data[y][x].red   = bgr[2];
+}
+
+void bmp24_readPixelData(t_bmp24 *image, FILE *file) {
+    for (int y = 0; y < image->height; y++) {
+        for (int x = 0; x < image->width; x++) {
+            bmp24_readPixelValue(image, x, y, file);
+        }
+    }
+}
+
+void bmp24_writePixelValue(t_bmp24 *image, int x, int y, FILE *file) {
+    uint8_t bgr[3];
+    bgr[0] = image->data[y][x].blue;
+    bgr[1] = image->data[y][x].green;
+    bgr[2] = image->data[y][x].red;
+
+    int imageY = image->height - 1 - y;
+    uint32_t offset = image->header.offset + (imageY * image->width + x) * 3;
+
+    file_rawWrite(offset, bgr, 1, 3, file);
+}
+
+void bmp24_writePixelData(t_bmp24 *image, FILE *file) {
+    for (int y = 0; y < image->height; y++) {
+        for (int x = 0; x < image->width; x++) {
+            bmp24_writePixelValue(image, x, y, file);
+        }
+    }
+}
+t_bmp24 *bmp24_loadImage(const char *filename) {
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        printf("Erreur : impossible d’ouvrir %s\n", filename);
+        return NULL;
+    }
+
+    t_bmp_header header;
+    t_bmp_info info;
+
+    fread(&header, sizeof(t_bmp_header), 1, file);
+    fread(&info, sizeof(t_bmp_info), 1, file);
+
+    if (info.bits != 24) {
+        printf("Erreur : profondeur de couleur non prise en charge (%d bits).\n", info.bits);
+        fclose(file);
+        return NULL;
+    }
+
+    t_bmp24 *img = bmp24_allocate(info.width, info.height, info.bits);
+    if (!img) {
+        fclose(file);
+        return NULL;
+    }
+
+    img->header = header;
+    img->header_info = info;
+
+    // Lire les pixels (de bas en haut, sans padding)
+    for (int y = 0; y < info.height; y++) {
+        for (int x = 0; x < info.width; x++) {
+            uint8_t bgr[3];
+            fread(bgr, sizeof(uint8_t), 3, file);
+            img->data[info.height - 1 - y][x].blue = bgr[0];
+            img->data[info.height - 1 - y][x].green = bgr[1];
+            img->data[info.height - 1 - y][x].red = bgr[2];
+        }
+    }
+
+    fclose(file);
+    return img;
+}
 
 
+void bmp24_saveImage(t_bmp24 *img, const char *filename) {
+    FILE *file = fopen(filename, "wb");
+    if (!file) {
+        printf("Erreur : impossible de sauvegarder %s\n", filename);
+        return;
+    }
 
+    file_rawWrite(BITMAP_MAGIC, &img->header, sizeof(t_bmp_header), 1, file);
+    file_rawWrite(BITMAP_SIZE, &img->header_info, sizeof(t_bmp_info), 1, file);
+
+    bmp24_writePixelData(img, file);
+    fclose(file);
+}
