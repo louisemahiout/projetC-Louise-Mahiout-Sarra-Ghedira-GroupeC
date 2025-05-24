@@ -1,6 +1,7 @@
 
 
 
+
 //
 // Created by louis on 21/04/2025.
 //
@@ -231,150 +232,221 @@ void bmp8_applyFilter(t_bmp8 *img, float **kernel, int kernelSize) {
 }
 
 // Partie 2
+// Alloue dynamiquement un tableau 2D de pixels (t_pixel) de taille width x height
 t_pixel **bmp24_allocateDataPixels(int width, int height) {
+    // Allocation d'un tableau de pointeurs vers t_pixel, un pointeur par ligne (height lignes)
     t_pixel **pixels = malloc(height * sizeof(t_pixel *));
-    if (!pixels) {
+    if (!pixels) { // Vérifie si l'allocation a échoué
         fprintf(stderr, "Erreur d'allocation de lignes de pixels.\n");
-        return NULL;
+        return NULL; // Retourne NULL en cas d'échec
     }
 
+    // Pour chaque ligne, alloue un tableau de pixels (width pixels)
     for (int i = 0; i < height; i++) {
         pixels[i] = malloc(width * sizeof(t_pixel));
-        if (!pixels[i]) {
+        if (!pixels[i]) { // Vérifie si l'allocation de la ligne i a échoué
             fprintf(stderr, "Erreur d'allocation de pixels pour la ligne %d.\n", i);
-            // Libérer les lignes déjà allouées
+            // Libère toutes les lignes déjà allouées pour éviter une fuite mémoire
             for (int j = 0; j < i; j++) {
                 free(pixels[j]);
             }
+            // Libère aussi le tableau de pointeurs
             free(pixels);
-            return NULL;
+            return NULL; // Retourne NULL en cas d'échec
         }
     }
 
-    return pixels;
+    return pixels; // Retourne le pointeur vers le tableau 2D alloué
 }
 
+// Libère la mémoire allouée pour un tableau 2D de pixels de hauteur "height"
 void bmp24_freeDataPixels(t_pixel **pixels, int height) {
-    if (!pixels) return;
+    if (!pixels) return; // Rien à faire si le pointeur est NULL
+    // Libère chaque ligne (tableau de pixels)
     for (int i = 0; i < height; i++) {
         free(pixels[i]);
     }
+    // Libère le tableau de pointeurs
     free(pixels);
 }
 
+// Alloue une structure t_bmp24 et initialise ses données pixel
 t_bmp24 *bmp24_allocate(int width, int height, int colorDepth) {
+    // Allocation de la structure t_bmp24
     t_bmp24 *img = malloc(sizeof(t_bmp24));
-    if (!img) return NULL;
+    if (!img) return NULL; // Échec d'allocation
 
+    // Initialisation des dimensions et profondeur de couleur
     img->width = width;
     img->height = height;
     img->colorDepth = colorDepth;
 
+    // Allocation du tableau 2D de pixels (pointeurs vers chaque ligne)
     img->data = malloc(height * sizeof(t_pixel *));
     for (int i = 0; i < height; i++) {
-        img->data[i] = malloc(width * sizeof(t_pixel));
+        img->data[i] = malloc(width * sizeof(t_pixel)); // Allocation des pixels par ligne
     }
 
-    return img;
+    return img; // Retourne l'image allouée
 }
 
+// Libère la mémoire d'une structure t_bmp24 ainsi que ses pixels
 void bmp24_free(t_bmp24 *img) {
-    if (!img) return;
-    bmp24_freeDataPixels(img->data, img->height);
-    free(img);
+    if (!img) return; // Rien à faire si NULL
+    bmp24_freeDataPixels(img->data, img->height); // Libère le tableau 2D de pixels
+    free(img); // Libère la structure elle-même
 }
+// Lit des données brutes dans un fichier à partir d'une position donnée
+// position : position dans le fichier où commencer la lecture (en octets)
+// buffer : zone mémoire où stocker les données lues
+// size : taille en octets de chaque élément à lire
+// n : nombre d'éléments à lire
+// file : pointeur vers le fichier ouvert en lecture
 void file_rawRead(uint32_t position, void *buffer, uint32_t size, size_t n, FILE *file) {
-    fseek(file, position, SEEK_SET);
-    fread(buffer, size, n, file);
+    fseek(file, position, SEEK_SET);  // Se positionner à "position" dans le fichier (début + offset)
+    fread(buffer, size, n, file);      // Lire n éléments de taille "size" dans "buffer"
 }
 
+// Écrit des données brutes dans un fichier à partir d'une position donnée
+// position : position dans le fichier où commencer l'écriture (en octets)
+// buffer : zone mémoire contenant les données à écrire
+// size : taille en octets de chaque élément à écrire
+// n : nombre d'éléments à écrire
+// file : pointeur vers le fichier ouvert en écriture
 void file_rawWrite(uint32_t position, void *buffer, uint32_t size, size_t n, FILE *file) {
-    fseek(file, position, SEEK_SET);
-    fwrite(buffer, size, n, file);
+    fseek(file, position, SEEK_SET);  // Se positionner à "position" dans le fichier
+    fwrite(buffer, size, n, file);     // Écrire n éléments de taille "size" depuis "buffer"
 }
+
+// Lit la valeur d'un pixel (coordonnées x,y) depuis un fichier BMP 24 bits
+// image : pointeur vers la structure image BMP 24 bits (contient largeur, hauteur, données, header, etc.)
+// x, y : coordonnées du pixel à lire (origine en haut à gauche)
+// file : fichier BMP ouvert en lecture
 void bmp24_readPixelValue(t_bmp24 *image, int x, int y, FILE *file) {
-    uint8_t bgr[3];
-    int imageY = image->height - 1 - y;  // Inverser la ligne (bas -> haut)
+    uint8_t bgr[3]; // Tableau temporaire pour stocker la couleur BGR lue (BMP stocke en ordre Blue Green Red)
+
+    // Conversion coordonnée y pour lire depuis le bas (BMP stocke les pixels ligne par ligne du bas vers le haut)
+    int imageY = image->height - 1 - y;
+
+    // Calcul de l'offset dans le fichier (offset des données + position du pixel dans la matrice)
     uint32_t offset = image->header.offset + (imageY * image->width + x) * 3;
 
+    // Lecture des 3 octets BGR à partir de l'offset calculé
     file_rawRead(offset, bgr, 1, 3, file);
+
+    // Stockage des composantes dans la structure image (en conservant l'ordre RGB dans la structure)
     image->data[y][x].blue  = bgr[0];
     image->data[y][x].green = bgr[1];
     image->data[y][x].red   = bgr[2];
 }
 
+// Lit toutes les données pixels d'une image BMP 24 bits depuis un fichier
+// image : structure BMP à remplir
+// file : fichier BMP ouvert en lecture, positionné au début des données pixels
 void bmp24_readPixelData(t_bmp24 *image, FILE *file) {
+    // Calcul du padding (octets inutilisés) à la fin de chaque ligne
+    // Chaque ligne doit être un multiple de 4 octets, donc padding = 0..3 octets
     int padding = (4 - (image->width * 3) % 4) % 4;
 
+    // Parcours de toutes les lignes
     for (int i = 0; i < image->height; i++) {
+        // Lecture ligne par ligne, chaque pixel est lu directement dans la structure image
+        // Note : on lit la ligne i en partant du bas (image->height - i - 1)
         for (int j = 0; j < image->width; j++) {
             fread(&image->data[image->height - i - 1][j], sizeof(t_pixel), 1, file);
         }
-        fseek(file, padding, SEEK_CUR); // Ignorer les octets de padding
+        // Sauter les octets de padding en fin de ligne
+        fseek(file, padding, SEEK_CUR);
     }
 }
 
+// Écrit la valeur d'un pixel (x,y) dans un fichier BMP 24 bits
+// image : structure contenant les pixels à écrire
+// x, y : coordonnées du pixel à écrire
+// file : fichier BMP ouvert en écriture
 void bmp24_writePixelValue(t_bmp24 *image, int x, int y, FILE *file) {
-    uint8_t bgr[3];
+    uint8_t bgr[3]; // Tableau temporaire pour stocker la couleur au format BGR
+
+    // Préparation des composantes dans l'ordre BGR (Blue, Green, Red)
     bgr[0] = image->data[y][x].blue;
     bgr[1] = image->data[y][x].green;
     bgr[2] = image->data[y][x].red;
 
+    // Conversion coordonnée y inverse pour écrire depuis le bas du fichier BMP
     int imageY = image->height - 1 - y;
+
+    // Calcul de l'offset dans le fichier
     uint32_t offset = image->header.offset + (imageY * image->width + x) * 3;
 
+    // Écriture des 3 octets BGR à l'offset calculé
     file_rawWrite(offset, bgr, 1, 3, file);
 }
 
+// Écrit toutes les données pixels d'une image BMP 24 bits dans un fichier
+// image : structure contenant les pixels à écrire
+// file : fichier BMP ouvert en écriture
 void bmp24_writePixelData(t_bmp24 *image, FILE *file) {
+    // Parcours de tous les pixels
     for (int y = 0; y < image->height; y++) {
         for (int x = 0; x < image->width; x++) {
+            // Écriture pixel par pixel en appelant la fonction dédiée
             bmp24_writePixelValue(image, x, y, file);
         }
     }
 }
-
+// Charge une image BMP 24 bits depuis un fichier
+// filename : chemin du fichier BMP à lire
+// Retourne un pointeur vers une structure t_bmp24 contenant l'image chargée, ou NULL en cas d'erreur
 t_bmp24 *bmp24_loadImage(const char *filename) {
+    // Ouverture du fichier en mode binaire lecture
     FILE *file = fopen(filename, "rb");
     if (!file) {
         printf("Erreur : impossible d’ouvrir %s\n", filename);
         return NULL;
     }
 
-    t_bmp_header header;
-    t_bmp_info info;
+    t_bmp_header header;  // Structure pour l'en-tête BMP (14 octets)
+    t_bmp_info info;      // Structure pour l'en-tête d'information BMP (40 octets)
 
+    // Lecture des en-têtes depuis le fichier
     fread(&header, sizeof(t_bmp_header), 1, file);
     fread(&info, sizeof(t_bmp_info), 1, file);
 
+    // Vérifie que l'image est bien en 24 bits par pixel
     if (info.bits != 24) {
         printf("Erreur : profondeur de couleur non prise en charge (%d bits).\n", info.bits);
         fclose(file);
         return NULL;
     }
 
+    // Allocation mémoire pour l'image avec la largeur, hauteur et profondeur de couleur
     t_bmp24 *img = bmp24_allocate(info.width, info.height, info.bits);
     if (!img) {
         fclose(file);
         return NULL;
     }
 
+    // Copie des informations des en-têtes dans la structure image
     img->header = header;
     img->header_info = info;
 
+    // Calcul du padding (octets inutilisés à la fin de chaque ligne)
     int padding = (4 - (info.width * 3) % 4) % 4;
 
-    fseek(file, header.offset, SEEK_SET); // Très important : aller au début des données pixel
+    // Se positionner au début des données pixels dans le fichier (offset indiqué dans l'en-tête)
+    fseek(file, header.offset, SEEK_SET);
 
+    // Lecture des pixels ligne par ligne, de bas en haut (BMP stocke les pixels à l'envers)
     for (int y = info.height - 1; y >= 0; y--) {
         for (int x = 0; x < info.width; x++) {
             uint8_t bgr[3];
-            fread(bgr, 1, 3, file);
+            fread(bgr, 1, 3, file);  // Lecture des 3 octets BGR
+            // Stockage des composantes dans la structure image (conversion en RGB)
             img->data[y][x].blue  = bgr[0];
             img->data[y][x].green = bgr[1];
             img->data[y][x].red   = bgr[2];
         }
-        fseek(file, padding, SEEK_CUR); // ignorer le padding
+        fseek(file, padding, SEEK_CUR); // Ignorer les octets de padding en fin de ligne
     }
 
     fclose(file);
@@ -382,42 +454,50 @@ t_bmp24 *bmp24_loadImage(const char *filename) {
 }
 
 
+// Sauvegarde une image BMP 24 bits dans un fichier
+// img : pointeur vers la structure contenant l'image à sauvegarder
+// filename : chemin du fichier BMP à écrire
 void bmp24_saveImage(t_bmp24 *img, const char *filename) {
+    // Ouverture du fichier en mode binaire écriture
     FILE *file = fopen(filename, "wb");
     if (!file) {
         printf("Erreur : impossible de sauvegarder %s\n", filename);
         return;
     }
 
+    // Calcul du padding pour chaque ligne (pour aligner sur 4 octets)
     int padding = (4 - (img->width * 3) % 4) % 4;
     int rowSizeWithPadding = img->width * 3 + padding;
     int pixelArraySize = rowSizeWithPadding * img->height;
 
-    // Mise à jour des champs de l'en-tête
-    img->header.type = BMP_TYPE;          // "BM"
-    img->header.offset = 54;
-    img->header.size = 54 + pixelArraySize;
+    // Mise à jour des champs de l'en-tête BMP avant écriture
+    img->header.type = BMP_TYPE;          // "BM" en hexadécimal (0x4D42)
+    img->header.offset = 54;               // Taille des en-têtes (14 + 40)
+    img->header.size = 54 + pixelArraySize; // Taille totale du fichier (en-têtes + pixels)
     img->header.reserved1 = 0;
     img->header.reserved2 = 0;
 
-    img->header_info.size = 40;
-    img->header_info.width = img->width;
-    img->header_info.height = img->height;
-    img->header_info.planes = 1;
-    img->header_info.bits = 24;
-    img->header_info.compression = 0;
-    img->header_info.imagesize = pixelArraySize;
-    img->header_info.xresolution = 2835;
-    img->header_info.yresolution = 2835;
-    img->header_info.ncolors = 0;
-    img->header_info.importantcolors = 0;
+    // Mise à jour de l'en-tête d'information BMP
+    img->header_info.size = 40;            // Taille de cet en-tête (40 octets)
+    img->header_info.width = img->width;   // Largeur de l'image
+    img->header_info.height = img->height; // Hauteur de l'image
+    img->header_info.planes = 1;            // Nombre de plans (toujours 1)
+    img->header_info.bits = 24;             // Profondeur couleur 24 bits
+    img->header_info.compression = 0;       // Pas de compression
+    img->header_info.imagesize = pixelArraySize; // Taille des données pixels avec padding
+    img->header_info.xresolution = 2835;    // Résolution horizontale (pixels/mètre)
+    img->header_info.yresolution = 2835;    // Résolution verticale (pixels/mètre)
+    img->header_info.ncolors = 0;            // Nombre de couleurs dans la palette (0 pour 24 bits)
+    img->header_info.importantcolors = 0;    // Toutes les couleurs sont importantes
 
-    // Écriture des headers
+    // Écriture des en-têtes dans le fichier
     fwrite(&img->header, sizeof(t_bmp_header), 1, file);
     fwrite(&img->header_info, sizeof(t_bmp_info), 1, file);
 
-    // Écriture des pixels de bas en haut
+    // Tableau temporaire de padding (octets nuls)
     uint8_t pad[3] = {0, 0, 0};
+
+    // Écriture des pixels ligne par ligne, de bas en haut
     for (int y = img->height - 1; y >= 0; y--) {
         for (int x = 0; x < img->width; x++) {
             uint8_t bgr[3] = {
@@ -425,73 +505,99 @@ void bmp24_saveImage(t_bmp24 *img, const char *filename) {
                 img->data[y][x].green,
                 img->data[y][x].red
             };
-            fwrite(bgr, 1, 3, file);
+            fwrite(bgr, 1, 3, file); // Écriture des 3 octets BGR
         }
+        // Écriture des octets de padding à la fin de la ligne
         fwrite(pad, 1, padding, file);
     }
 
     fclose(file);
 }
 
+
+// Applique un effet négatif sur l'image BMP 24 bits
+// Pour chaque pixel, inverse la valeur de chaque composante couleur (R, G, B)
 void bmp24_negative(t_bmp24 *img) {
     printf("width : %d  height : %d \n", img->width, img->height);
+    // Parcours de toutes les colonnes (largeur)
     for (int x = 0; x < img->width; x++) {
+        // Parcours de toutes les lignes (hauteur)
         for (int y = 0; y < img->height; y++) {
+            // Inversion des composantes : nouvelle valeur = 255 - ancienne valeur
             img->data[x][y].red   = 255 - img->data[x][y].red;
             img->data[x][y].green = 255 - img->data[x][y].green;
             img->data[x][y].blue  = 255 - img->data[x][y].blue;
         }
     }
 }
+// Convertit l'image en niveaux de gris
+// Pour chaque pixel, calcule la moyenne des composantes R, G et B et met cette moyenne dans chaque composante
 void bmp24_grayscale(t_bmp24 *img) {
+    // Parcours ligne par ligne (hauteur)
     for (int y = 0; y < img->height; y++) {
+        // Parcours colonne par colonne (largeur)
         for (int x = 0; x < img->width; x++) {
+            // Calcul de la moyenne des trois composantes couleur
             uint8_t gray = (img->data[y][x].red + img->data[y][x].green + img->data[y][x].blue) / 3;
+            // Affectation de cette valeur moyenne à chaque composante
             img->data[y][x].red = gray;
             img->data[y][x].green = gray;
             img->data[y][x].blue = gray;
         }
     }
 }
+// Modifie la luminosité de l'image en ajoutant 'value' à chaque composante couleur
+// value peut être positif (image plus claire) ou négatif (image plus sombre)
 void bmp24_brightness(t_bmp24 *img, int value) {
+    // Parcours ligne par ligne
     for (int y = 0; y < img->height; y++) {
+        // Parcours colonne par colonne
         for (int x = 0; x < img->width; x++) {
+            // Calcul des nouvelles valeurs de couleur avec la valeur de luminosité ajoutée
             int r = img->data[y][x].red + value;
             int g = img->data[y][x].green + value;
             int b = img->data[y][x].blue + value;
 
+            // Clamp (contrôle bornes) pour que les valeurs restent entre 0 et 255
             img->data[y][x].red   = (r > 255) ? 255 : (r < 0) ? 0 : r;
             img->data[y][x].green = (g > 255) ? 255 : (g < 0) ? 0 : g;
             img->data[y][x].blue  = (b > 255) ? 255 : (b < 0) ? 0 : b;
         }
     }
 }
+// Applique une convolution sur le pixel (x, y) de l'image img avec un noyau (kernel) carré
+// Le noyau est une matrice de coefficients de taille kernelSize x kernelSize
+// Retourne un pixel résultant après application du filtre de convolution
+
 t_pixel bmp24_convolution(t_bmp24 *img, int x, int y, float **kernel, int kernelSize) {
-    int offset = kernelSize / 2;
-    float r = 0, g = 0, b = 0;
+    int offset = kernelSize / 2;  // Décalage pour centrer le noyau sur le pixel (x,y)
+    float r = 0, g = 0, b = 0;    // Variables pour accumuler les composantes rouge, verte et bleue
 
-    for (int i = -offset; i <= offset; i++) {
-        for (int j = -offset; j <= offset; j++) {
-            int px = x + j;
-            int py = y + i;
+    // Parcours du noyau (filtre) autour du pixel central (x, y)
+    for (int i = -offset; i <= offset; i++) {         // i parcours les lignes relatives au centre
+        for (int j = -offset; j <= offset; j++) {     // j parcours les colonnes relatives au centre
+            int px = x + j;  // Coordonnée x du pixel voisin
+            int py = y + i;  // Coordonnée y du pixel voisin
 
+            // Vérification que le pixel voisin est dans les limites de l'image
             if (px >= 0 && px < img->width && py >= 0 && py < img->height) {
-                t_pixel p = img->data[py][px];
-                float coeff = kernel[i + offset][j + offset];
-                r += p.red * coeff;
-                g += p.green * coeff;
-                b += p.blue * coeff;
+                t_pixel p = img->data[py][px];           // Récupération du pixel voisin
+                float coeff = kernel[i + offset][j + offset];  // Coefficient du noyau correspondant
+                r += p.red * coeff;    // Accumulation pondérée de la composante rouge
+                g += p.green * coeff;  // Accumulation pondérée de la composante verte
+                b += p.blue * coeff;   // Accumulation pondérée de la composante bleue
             }
+            // Si le pixel voisin est hors image, il est ignoré (pas de contribution)
         }
     }
 
-    // Clamp des valeurs entre 0 et 255
+    // Création du pixel résultat avec les valeurs calculées, clampées entre 0 et 255
     t_pixel result;
     result.red   = (uint8_t)(r < 0 ? 0 : r > 255 ? 255 : r);
     result.green = (uint8_t)(g < 0 ? 0 : g > 255 ? 255 : g);
     result.blue  = (uint8_t)(b < 0 ? 0 : b > 255 ? 255 : b);
 
-    return result;
+    return result;  // Retourne le pixel après application de la convolution
 }
 
 
@@ -589,66 +695,73 @@ void yuv_to_rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t *r, uint8_t *g, uint8_t
     *g = (uint8_t)(g_ < 0 ? 0 : (g_ > 255 ? 255 : g_));
     *b = (uint8_t)(b_ < 0 ? 0 : (b_ > 255 ? 255 : b_));
 }
+// Fonction d'égalisation d'histogramme sur une image BMP 24 bits
+// L'égalisation est effectuée sur la composante de luminance Y du modèle de couleur YUV
+// L'image est convertie RGB → YUV, égalisation sur Y, puis reconvertie YUV → RGB
+
 void bmp24_equalize(t_bmp24 *img) {
     int width = img->width;
     int height = img->height;
-    int size = width * height;
+    int size = width * height;  // Nombre total de pixels
 
-    unsigned int histogram[256] = {0};
-    unsigned int cdf[256] = {0};
-    unsigned int cdf_min = 0;
-    uint8_t *Y_values = malloc(size);
-    uint8_t *U = malloc(size);
-    uint8_t *V = malloc(size);
+    unsigned int histogram[256] = {0};  // Histogramme des valeurs Y (luminance)
+    unsigned int cdf[256] = {0};        // Fonction de distribution cumulée (CDF)
+    unsigned int cdf_min = 0;            // Valeur minimale non nulle de la CDF
+    uint8_t *Y_values = malloc(size);   // Tableau pour stocker les valeurs Y de chaque pixel
+    uint8_t *U = malloc(size);          // Tableau pour stocker les valeurs U (chrominance)
+    uint8_t *V = malloc(size);          // Tableau pour stocker les valeurs V (chrominance)
 
+    // Vérification d'allocation mémoire
     if (!Y_values || !U || !V) {
         printf("Erreur d'allocation mémoire pour égalisation couleur.\n");
         return;
     }
 
-    // Étape 1 : conversion RGB → YUV et histogramme Y
+    // Étape 1 : Conversion de chaque pixel RGB → YUV et construction de l'histogramme des Y
     int index = 0;
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
-            t_pixel p = img->data[i][j];
+            t_pixel p = img->data[i][j];      // Récupérer pixel courant
             uint8_t y, u, v;
-            rgb_to_yuv(p.red, p.green, p.blue, &y, &u, &v);
-            Y_values[index] = y;
-            U[index] = u;
-            V[index] = v;
-            histogram[y]++;
+            rgb_to_yuv(p.red, p.green, p.blue, &y, &u, &v); // Conversion RGB → YUV
+            Y_values[index] = y;              // Stocker Y
+            U[index] = u;                    // Stocker U
+            V[index] = v;                    // Stocker V
+            histogram[y]++;                  // Incrémenter l'histogramme pour la valeur Y
             index++;
         }
     }
 
-    // Étape 2 : calcul CDF
+    // Étape 2 : Calcul de la fonction de distribution cumulée (CDF)
     unsigned int totalPixels = size;
     for (int i = 0; i < 256; i++) {
-        cdf[i] = (i == 0) ? histogram[i] : cdf[i - 1] + histogram[i];
-        if (cdf_min == 0 && cdf[i] > 0)
+        cdf[i] = (i == 0) ? histogram[i] : cdf[i - 1] + histogram[i];  // Cumul des valeurs histogramme
+        if (cdf_min == 0 && cdf[i] > 0)  // Trouver la première valeur non nulle de la CDF
             cdf_min = cdf[i];
     }
 
-    // Étape 3 : CDF normalisé (hist_eq)
+    // Étape 3 : Normalisation de la CDF pour obtenir la fonction d'égalisation (mapping histogramme)
     uint8_t hist_eq[256];
     for (int i = 0; i < 256; i++) {
+        // Application de la formule d'égalisation d'histogramme classique
         hist_eq[i] = (uint8_t)round(((float)(cdf[i] - cdf_min) / (totalPixels - cdf_min)) * 255);
     }
 
-    // Étape 4 : appliquer histogramme égalisé + reconversion YUV → RGB
+    // Étape 4 : Appliquer la transformation d'égalisation sur chaque pixel (Y) puis reconvertir en RGB
     index = 0;
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
-            uint8_t y_eq = hist_eq[Y_values[index]];
+            uint8_t y_eq = hist_eq[Y_values[index]];  // Valeur Y égalisée
             uint8_t r, g, b;
-            yuv_to_rgb(y_eq, U[index], V[index], &r, &g, &b);
-            img->data[i][j].red = r;
+            yuv_to_rgb(y_eq, U[index], V[index], &r, &g, &b); // Reconversion YUV → RGB avec Y égalisé
+            img->data[i][j].red = r;            // Mise à jour du pixel dans l'image
             img->data[i][j].green = g;
             img->data[i][j].blue = b;
             index++;
         }
     }
 
+    // Libération de la mémoire allouée pour les composantes Y, U et V
     free(Y_values);
     free(U);
     free(V);
