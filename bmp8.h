@@ -92,6 +92,6 @@ void bmp24_writePixelData(t_bmp24 *image, FILE *file);
 void bmp24_negative(t_bmp24 *img);
 void bmp24_grayscale(t_bmp24 *img);
 void bmp24_brightness(t_bmp24 *img, int value);
-
+void bmp24_applyFilter(t_bmp24 *img, float **kernel, int kernelSize);
 
 #endif //BMP8_H

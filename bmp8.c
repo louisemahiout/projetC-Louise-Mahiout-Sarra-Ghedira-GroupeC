@@ -1,3 +1,4 @@
+
 //
 // Created by louis on 21/04/2025.
 //
@@ -460,4 +461,69 @@ void bmp24_brightness(t_bmp24 *img, int value) {
             img->data[y][x].blue  = (b > 255) ? 255 : (b < 0) ? 0 : b;
         }
     }
+}
+void bmp24_applyFilter(t_bmp24 *img, float **kernel, int kernelSize) {
+    if (!img || !img->data) {
+        printf("Erreur : image couleur non chargée.\n");
+        return;
+    }
+
+    int width = img->width;
+    int height = img->height;
+    int offset = kernelSize / 2;
+
+    // Allocation des matrices temporaires pour chaque canal
+    uint8_t **red = bmp24_allocateDataPixels(width, height);
+    uint8_t **green = bmp24_allocateDataPixels(width, height);
+    uint8_t **blue = bmp24_allocateDataPixels(width, height);
+
+    if (!red || !green || !blue) {
+        printf("Erreur d'allocation mémoire pour les buffers de filtre.\n");
+        return;
+    }
+
+    // Appliquer le filtre (ignorer les bords)
+    for (int y = offset; y < height - offset; y++) {
+        for (int x = offset; x < width - offset; x++) {
+            float r = 0.0f, g = 0.0f, b = 0.0f;
+
+            for (int i = -offset; i <= offset; i++) {
+                for (int j = -offset; j <= offset; j++) {
+                    int yy = y + i;
+                    int xx = x + j;
+
+                    float coeff = kernel[i + offset][j + offset];
+                    r += img->data[yy][xx].red * coeff;
+                    g += img->data[yy][xx].green * coeff;
+                    b += img->data[yy][xx].blue * coeff;
+                }
+            }
+
+            // Clamp dans [0,255]
+            red[y][x] = (uint8_t)(fminf(fmaxf(r, 0), 255));
+            green[y][x] = (uint8_t)(fminf(fmaxf(g, 0), 255));
+            blue[y][x] = (uint8_t)(fminf(fmaxf(b, 0), 255));
+        }
+    }
+
+    // Copier les résultats dans l'image
+    for (int y = offset; y < height - offset; y++) {
+        for (int x = offset; x < width - offset; x++) {
+            img->data[y][x].red = red[y][x];
+            img->data[y][x].green = green[y][x];
+            img->data[y][x].blue = blue[y][x];
+        }
+    }
+
+    // Libération de la mémoire
+    for (int i = 0; i < height; i++) {
+        free(red[i]);
+        free(green[i]);
+        free(blue[i]);
+    }
+    free(red);
+    free(green);
+    free(blue);
+
+    printf("Filtre couleur de convolution appliqué avec succès !\n");
 }
