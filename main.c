@@ -18,7 +18,6 @@ float **allocateKernel(const float values[9]) {
     }
     return kernel;
 }
-
 void freeKernel(float **kernel) {
     if (!kernel) return;
     for (int i = 0; i < 3; i++) {
@@ -37,7 +36,7 @@ int main() {
     if (image != NULL) {
         printf("Image %s chargee automatiquement au demarrage.\n", nomFichier);
     } else {
-        printf("Erreur : impossible de charger l’image %s.\n", nomFichier);
+        printf("Erreur : impossible de charger l'image %s.\n", nomFichier);
         return 1;
     }
 
@@ -46,14 +45,15 @@ int main() {
         printf("PARTIE 1\n");
         printf("1. Afficher les informations de l'image\n");
         printf("2. Appliquer un filtre\n");
-        printf("3. Sauvegarder l'image\n");
-        printf("4. Quitter\n");
+        printf("3. Egalisation histogramme\n");
+        printf("4. Sauvegarder l'image\n");
+        printf("5. Quitter\n");
         printf("PARTIE 2\n");
-        printf("5. Charger une image couleur\n");
-        printf("6. Afficher les informations de l'image couleur\n");
-        printf("7. Appliquer un traitement à l’image couleur\n");
-        printf("8. sauvegarder\n");
-        printf("9. Quitter\n");
+        printf("6. Charger une image couleur\n");
+        printf("7. Afficher les informations de l'image couleur\n");
+        printf("8. Appliquer un filtre a l'image couleur\n");
+        printf("9. sauvegarder\n");
+        printf("10. Quitter\n");
         printf(">>> Votre choix : ");
         scanf("%d", &choix);
         getchar();
@@ -166,23 +166,31 @@ int main() {
 
                 break;
             }
-
             case 3: {
+                unsigned int *hist = bmp8_computeHistogram(image);
+                unsigned int *cdf = bmp8_computeCDF(hist);
+                bmp8_equalize(image, cdf);
+                free(hist);
+                free(cdf);
+                break;
+            }
+
+            case 4: {
                 char nomSortie[256] = CHEMIN_FICHIER_SORTIE;
                 char tmp[256];
-                printf("Nom du fichier de sauvegarde (ajouter .bmp à la fin) : ");
+                printf("Nom du fichier de sauvegarde (Ajoutez .bmp a la fin) : ");
                 scanf("%255s", tmp);
                 strcat(nomSortie, tmp);
                 bmp8_saveImage(nomSortie, image);
                 break;
             }
 
-            case 4:
+            case 5:
                 bmp8_free(&image);
                 printf("Fermeture du programme.\n");
                 return 0;
 
-            case 5: {
+            case 6: {
                 char fichier24[] = "images_entree/flowers_color.bmp";
 
                 // Vérification d'existence du fichier
@@ -195,7 +203,7 @@ int main() {
 
                 image24 = bmp24_loadImage(fichier24);
                 if (image24 != NULL) {
-                    printf("Image couleur 24 bits \"%s\" chargée avec succès.\n", fichier24);
+                    printf("Image couleur 24 bits \"%s\" chargee avec succes.\n", fichier24);
                 } else {
                     printf("Erreur lors du chargement de l’image couleur \"%s\".\n", fichier24);
                 }
@@ -205,9 +213,9 @@ int main() {
             }
 
 
-            case 6: {
+            case 7: {
                 if (image24 == NULL) {
-                    printf("Aucune image couleur chargée.\n");
+                    printf("Aucune image couleur chargee.\n");
                 } else {
                     printf("Image couleur :\n");
                     printf("Largeur : %d\n", image24->width);
@@ -218,17 +226,6 @@ int main() {
             }
 
             case 9: {
-                if (image24) {
-                    bmp24_free(image24);
-                    image24 = NULL;
-                    printf("Image couleur libérée.\n");
-                } else {
-                    printf("Aucune image à libérer.\n");
-                }
-                break;
-            }
-
-            case 8: {
                 if (image24) {
                     char nomSortie[256] = CHEMIN_FICHIER_SORTIE;
                     char tmp[256];
@@ -241,28 +238,40 @@ int main() {
                     // Sauvegarder l'image
                     bmp24_saveImage(image24, nomSortie);
 
-                    printf("Image couleur sauvegardée avec succès sous : %s\n", nomSortie);
+                    printf("Image couleur sauvegardee avec succes sous: %s\n", nomSortie);
                 } else {
                     printf("Aucune image couleur à sauvegarder.\n");
                 }
                 break;
             }
-            case 7: {
+            case 10: {
+                if (image24) {
+                    bmp24_free(image24);
+                    image24 = NULL;
+                    printf("Image couleur libérée.\n");
+                } else {
+                    printf("Aucune image à libérer.\n");
+                }
+                break;
+
+
+            }
+            case 8: {
     if (!image24) {
-        printf("Aucune image couleur chargée.\n");
+        printf("Aucune image couleur chargee.\n");
         break;
     }
 
     int op;
-    printf("\n-- Traitement de l’image couleur --\n");
-    printf("1. Négatif\n");
+    printf("\n-- Traitement de l'image couleur --\n");
+    printf("1. Negatif\n");
     printf("2. Niveaux de gris\n");
-    printf("3. Luminosité\n");
+    printf("3. Luminosite\n");
     printf("4. Flou\n");
     printf("5. Flou gaussien\n");
     printf("6. Contours\n");
     printf("7. Relief\n");
-    printf("8. Netteté\n");
+    printf("8. Nettete\n");
     printf(">>> Votre choix : ");
     scanf("%d", &op);
 

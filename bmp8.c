@@ -19,7 +19,7 @@ t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la 
     // Étape 2 : allouer de la mémoire pour une structure t_bmp8
     t_bmp8 *image=malloc(sizeof(t_bmp8));
     if (image==NULL) {
-        printf("Erreur: impossible d'allouer la mémoire\n");
+        printf("Erreur: impossible d'allouer la memoire\n");
         fclose(file);
         return NULL;
     }
@@ -35,7 +35,7 @@ t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la 
 
     // Étape 5 : vérifier que c’est bien une image en niveaux de gris (8 bits)
     if (image->colorDepth !=8) {
-        printf("Erreur : l’image n’est pas en niveaux de gris (profondeur = %d au lieu de 8)\n", image->colorDepth);
+        printf("Erreur : l'image n'est pas en niveaux de gris (profondeur = %d au lieu de 8)\n", image->colorDepth);
         fclose(file);
         free(image);
         return NULL;
@@ -47,7 +47,7 @@ t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la 
     // Étape 7 : allouer la mémoire pour les données de l’image (les pixels)
     image->data=malloc(image->dataSize); // Chaque pixel = 1 octet (valeur entre 0 et 255)
     if (image->data==NULL) {
-        printf("Erreur : échec de l’allocation mémoire pour les pixels\n");
+        printf("Erreur : echec de l’allocation memoire pour les pixels\n");
         fclose(file);
         free(image);
         return NULL;
@@ -66,27 +66,27 @@ void bmp8_saveImage(const char * filename, t_bmp8 * img) {
     FILE *file = fopen(filename, "wb");  // "wb" = write binary
     printf("%s\n", filename);
     if (file == NULL) {
-        printf("Erreur : impossible de créer le fichier %s\n", filename);
+        printf("Erreur : impossible de creer le fichier %s\n", filename);
         return;
     }
     // Étape 2 : écrire l’en-tête (54 octets)
     size_t written = fwrite(img->header, sizeof(unsigned char), 54, file);
     if (written != 54) {
-        printf("Erreur : échec de l’écriture de l’en-tête dans le fichier %s\n", filename);
+        printf("Erreur : echec de l’ecriture de l’en-tête dans le fichier %s\n", filename);
         fclose(file);
         return;
     }
     // Étape 3 : écrire la table des couleurs (palette : 256 x 4 = 1024 octets)
     written = fwrite(img->colorTable, sizeof(unsigned char), 1024, file);
     if (written != 1024) {
-        printf("Erreur : échec de l’écriture de la palette dans le fichier %s\n", filename);
+        printf("Erreur : echec de l’ecriture de la palette dans le fichier %s\n", filename);
         fclose(file);
         return;
     }
     // Étape 4 : écrire les données de l’image (pixels)
     written = fwrite(img->data, sizeof(unsigned char), img->dataSize, file);
     if (written != img->dataSize) {
-        printf("Erreur : échec de l’écriture des données dans le fichier %s\n", filename);
+        printf("Erreur : echec de l’ecriture des donnees dans le fichier %s\n", filename);
         fclose(file);
         return;
     }
@@ -118,11 +118,11 @@ void bmp8_printInfo(t_bmp8 * img) {
         return;
     }
     // Affichage des infos
-    printf("Image Info:\n");
-    printf("Width: %u\n", img->width);
-    printf("Height: %u\n", img->height);
-    printf("Color Depth: %u\n", img->colorDepth);
-    printf("Data Size: %u\n", img->dataSize);
+    printf("Informations sur l'image:\n");
+    printf("Largeur: %u\n", img->width);
+    printf("Hauteur: %u\n", img->height);
+    printf("Profondeur de l'image en bits: %u\n", img->colorDepth);
+    printf("Taille des données: %u\n", img->dataSize);
 }
 
 void bmp8_negative(t_bmp8 * img) {
@@ -141,7 +141,7 @@ void bmp8_negative(t_bmp8 * img) {
 
 void bmp8_brightness(t_bmp8 * img, int value) {
     if (img == NULL || img->data == NULL) {
-        printf("Erreur : image non chargée.\n");
+        printf("Erreur : image non chargee.\n");
         return;
     }
 
@@ -157,13 +157,13 @@ void bmp8_brightness(t_bmp8 * img, int value) {
         img->data[i] = (unsigned char)pixel;
     }
 
-    printf("Luminosité ajustée avec succès (value = %d).\n", value);
+    printf("Luminosite ajustee avec succes (value = %d).\n", value);
 }
 
 
 void bmp8_threshold(t_bmp8 * img, int threshold) {
     if (img == NULL || img->data == NULL) {
-        printf("Erreur : image non chargée.\n");
+        printf("Erreur : image non chargee.\n");
         return;
     }
 
@@ -175,13 +175,13 @@ void bmp8_threshold(t_bmp8 * img, int threshold) {
         }
     }
 
-    printf("Seuillage appliqué avec succès (threshold = %d).\n", threshold);
+    printf("Seuillage applique avec succes (threshold = %d).\n", threshold);
 }
 
 
 void bmp8_applyFilter(t_bmp8 *img, float **kernel, int kernelSize) {
     if (img == NULL || img->data == NULL) {
-        printf("Erreur : image non chargée.\n");
+        printf("Erreur : image non chargee.\n");
         return;
     }
 
@@ -192,7 +192,7 @@ void bmp8_applyFilter(t_bmp8 *img, float **kernel, int kernelSize) {
     // Allocation de la mémoire pour stocker temporairement l'image filtrée
     unsigned char *result = malloc(img->dataSize);
     if (result == NULL) {
-        printf("Erreur : échec de l’allocation mémoire pour l’image filtrée.\n");
+        printf("Erreur : echec de l’allocation memoire pour l’image filtree.\n");
         return;
     }
 
@@ -225,7 +225,7 @@ void bmp8_applyFilter(t_bmp8 *img, float **kernel, int kernelSize) {
     memcpy(img->data, result, img->dataSize);
     free(result);
 
-    printf("Filtre de convolution appliqué avec succès !\n");
+    printf("Filtre de convolution applique avec succes !\n");
 }
 t_pixel **bmp24_allocateDataPixels(int width, int height) {
     t_pixel **pixels = malloc(height * sizeof(t_pixel *));
@@ -360,7 +360,7 @@ t_bmp24 *bmp24_loadImage(const char *filename) {
 
     int padding = (4 - (info.width * 3) % 4) % 4;
 
-    fseek(file, header.offset, SEEK_SET); // ⚠️ Très important : aller au début des données pixel
+    fseek(file, header.offset, SEEK_SET); // Très important : aller au début des données pixel
 
     for (int y = info.height - 1; y >= 0; y--) {
         for (int x = 0; x < info.width; x++) {
@@ -464,7 +464,7 @@ void bmp24_brightness(t_bmp24 *img, int value) {
 }
 void bmp24_applyFilter(t_bmp24 *img, float **kernel, int kernelSize) {
     if (!img || !img->data) {
-        printf("Erreur : image couleur non chargée.\n");
+        printf("Erreur : image couleur non chargee.\n");
         return;
     }
 
@@ -478,7 +478,7 @@ void bmp24_applyFilter(t_bmp24 *img, float **kernel, int kernelSize) {
     uint8_t **blue = bmp24_allocateDataPixels(width, height);
 
     if (!red || !green || !blue) {
-        printf("Erreur d'allocation mémoire pour les buffers de filtre.\n");
+        printf("Erreur d'allocation memoire pour les buffers de filtre.\n");
         return;
     }
 
@@ -525,5 +525,76 @@ void bmp24_applyFilter(t_bmp24 *img, float **kernel, int kernelSize) {
     free(green);
     free(blue);
 
-    printf("Filtre couleur de convolution appliqué avec succès !\n");
+    printf("Filtre couleur de convolution applique avec succes !\n");
 }
+unsigned int *bmp8_computeHistogram(t_bmp8 *img) {
+    if (!img || !img->data) {
+        printf("Erreur : image non chargee.\n");
+        return NULL;
+    }
+
+    unsigned int *hist = calloc(256, sizeof(unsigned int)); // initialisé à 0
+    if (!hist) {
+        printf("Erreur : allocation memoire echouee pour l'histogramme.\n");
+        return NULL;
+    }
+
+    for (unsigned int i = 0; i < img->dataSize; i++) {
+        hist[img->data[i]]++;
+    }
+
+    return hist;
+}
+
+unsigned int *bmp8_computeCDF(unsigned int *hist) {
+    if (!hist) return NULL;
+
+    unsigned int *hist_eq = malloc(256 * sizeof(unsigned int));
+    if (!hist_eq) {
+        printf("Erreur : allocation memoire echouee pour la CDF.\n");
+        return NULL;
+    }
+
+    unsigned int cdf[256] = {0};
+    cdf[0] = hist[0];
+    for (int i = 1; i < 256; i++) {
+        cdf[i] = cdf[i - 1] + hist[i];
+    }
+
+    // Corrigé ici : bloc bien fermé
+    unsigned int cdfmin = 0;
+    for (int i = 0; i < 256; i++) {
+        if (cdf[i] != 0) {
+            cdfmin = cdf[i];
+            break;
+        }
+    }
+
+    unsigned int N = cdf[255];
+
+    if (N == cdfmin) {
+        for (int i = 0; i < 256; i++) {
+            hist_eq[i] = 0;
+        }
+    } else {
+        for (int i = 0; i < 256; i++) {
+            hist_eq[i] = (unsigned int)round(((double)(cdf[i] - cdfmin) / (N - cdfmin)) * 255);
+        }
+    }
+
+    return hist_eq;
+}
+
+void bmp8_equalize(t_bmp8 *img, unsigned int *hist_eq) {
+    if (!img || !img->data || !hist_eq) {
+        printf("Erreur : image ou histogramme non valides.\n");
+        return;
+    }
+
+    for (unsigned int i = 0; i < img->dataSize; i++) {
+        img->data[i] = (unsigned char)hist_eq[img->data[i]];
+    }
+
+    printf("Egalisation d'histogramme appliquee avec succes !\n");
+}
+

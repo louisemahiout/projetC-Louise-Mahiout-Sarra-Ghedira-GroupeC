@@ -93,5 +93,9 @@ void bmp24_negative(t_bmp24 *img);
 void bmp24_grayscale(t_bmp24 *img);
 void bmp24_brightness(t_bmp24 *img, int value);
 void bmp24_applyFilter(t_bmp24 *img, float **kernel, int kernelSize);
+unsigned int * bmp8_computeHistogram(t_bmp8 * img);
+unsigned int * bmp8_computeCDF(unsigned int * hist);
+void bmp8_equalize(t_bmp8 * img, unsigned int * hist_eq);
+
 
 #endif //BMP8_H
