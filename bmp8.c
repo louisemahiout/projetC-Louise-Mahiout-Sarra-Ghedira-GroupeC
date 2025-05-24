@@ -466,71 +466,35 @@ void bmp24_brightness(t_bmp24 *img, int value) {
         }
     }
 }
-void bmp24_applyFilter(t_bmp24 *img, float **kernel, int kernelSize) {
-    if (!img || !img->data) {
-        printf("Erreur : image couleur non chargee.\n");
-        return;
-    }
-
-    int width = img->width;
-    int height = img->height;
+t_pixel bmp24_convolution(t_bmp24 *img, int x, int y, float **kernel, int kernelSize) {
     int offset = kernelSize / 2;
+    float r = 0, g = 0, b = 0;
 
-    // Allocation des matrices temporaires pour chaque canal
-    uint8_t **red = bmp24_allocateDataPixels(width, height);
-    uint8_t **green = bmp24_allocateDataPixels(width, height);
-    uint8_t **blue = bmp24_allocateDataPixels(width, height);
+    for (int i = -offset; i <= offset; i++) {
+        for (int j = -offset; j <= offset; j++) {
+            int px = x + j;
+            int py = y + i;
 
-    if (!red || !green || !blue) {
-        printf("Erreur d'allocation memoire pour les buffers de filtre.\n");
-        return;
-    }
-
-    // Appliquer le filtre (ignorer les bords)
-    for (int y = offset; y < height - offset; y++) {
-        for (int x = offset; x < width - offset; x++) {
-            float r = 0.0f, g = 0.0f, b = 0.0f;
-
-            for (int i = -offset; i <= offset; i++) {
-                for (int j = -offset; j <= offset; j++) {
-                    int yy = y + i;
-                    int xx = x + j;
-
-                    float coeff = kernel[i + offset][j + offset];
-                    r += img->data[yy][xx].red * coeff;
-                    g += img->data[yy][xx].green * coeff;
-                    b += img->data[yy][xx].blue * coeff;
-                }
+            if (px >= 0 && px < img->width && py >= 0 && py < img->height) {
+                t_pixel p = img->data[py][px];
+                float coeff = kernel[i + offset][j + offset];
+                r += p.red * coeff;
+                g += p.green * coeff;
+                b += p.blue * coeff;
             }
-
-            // Clamp dans [0,255]
-            red[y][x] = (uint8_t)(fminf(fmaxf(r, 0), 255));
-            green[y][x] = (uint8_t)(fminf(fmaxf(g, 0), 255));
-            blue[y][x] = (uint8_t)(fminf(fmaxf(b, 0), 255));
         }
     }
 
-    // Copier les résultats dans l'image
-    for (int y = offset; y < height - offset; y++) {
-        for (int x = offset; x < width - offset; x++) {
-            img->data[y][x].red = red[y][x];
-            img->data[y][x].green = green[y][x];
-            img->data[y][x].blue = blue[y][x];
-        }
-    }
+    // Clamp des valeurs entre 0 et 255
+    t_pixel result;
+    result.red   = (uint8_t)(r < 0 ? 0 : r > 255 ? 255 : r);
+    result.green = (uint8_t)(g < 0 ? 0 : g > 255 ? 255 : g);
+    result.blue  = (uint8_t)(b < 0 ? 0 : b > 255 ? 255 : b);
 
-    // Libération de la mémoire
-    for (int i = 0; i < height; i++) {
-        free(red[i]);
-        free(green[i]);
-        free(blue[i]);
-    }
-    free(red);
-    free(green);
-    free(blue);
-
-    printf("Filtre couleur de convolution applique avec succes !\n");
+    return result;
 }
+
+
 // Partie 3
 unsigned int *bmp8_computeHistogram(t_bmp8 *img) {
     if (!img || !img->data) {

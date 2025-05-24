@@ -92,7 +92,7 @@ void bmp24_writePixelData(t_bmp24 *image, FILE *file);
 void bmp24_negative(t_bmp24 *img);
 void bmp24_grayscale(t_bmp24 *img);
 void bmp24_brightness(t_bmp24 *img, int value);
-void bmp24_applyFilter(t_bmp24 *img, float **kernel, int kernelSize);
+t_pixel bmp24_convolution(t_bmp24 *img, int x, int y, float **kernel, int kernelSize);
 unsigned int * bmp8_computeHistogram(t_bmp8 * img);
 unsigned int * bmp8_computeCDF(unsigned int * hist);
 void bmp8_equalize(t_bmp8 * img, unsigned int * hist_eq);

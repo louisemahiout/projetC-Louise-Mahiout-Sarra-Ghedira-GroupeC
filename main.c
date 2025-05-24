@@ -299,15 +299,16 @@ int main() {
                         break;
                         }
 
-                        case 7: { // Relief
-                            float emboss[9] = {
-                                -2, -1, 0,
-                                -1,  1, 1,
-                                 0,  1, 2
-                            };
-                        kernel = allocateKernel(emboss);
-                        break;
-                        }
+                        case 7: { // Relief (Emboss)
+                           float emboss[9] = {
+                               -2, -1,  0,
+                               -1,  1,  1,
+                                0,  1,  2
+                           };
+                           kernel = allocateKernel(emboss);
+                           break;
+                    }
+
 
                         case 8: { // Netteté
                             float sharpen[9] = {
@@ -324,10 +325,34 @@ int main() {
                 }
 
                 if (kernel != NULL) {
-                    bmp24_applyFilter(image24, kernel, 3);
+                    // Créer une image temporaire pour stocker le résultat
+                    t_pixel **tempData = bmp24_allocateDataPixels(image24->width, image24->height);
+                    if (!tempData) {
+                        printf("Erreur d'allocation pour l'image temporaire.\n");
+                        freeKernel(kernel);
+                        break;
+                    }
+
+                    // Appliquer le filtre de convolution pixel par pixel
+                    for (int y = 0; y < image24->height; y++) {
+                        for (int x = 0; x < image24->width; x++) {
+                            tempData[y][x] = bmp24_convolution(image24, x, y, kernel, 3);
+                        }
+                    }
+
+                    // Copier les données traitées dans l’image originale
+                    for (int y = 0; y < image24->height; y++) {
+                        for (int x = 0; x < image24->width; x++) {
+                            image24->data[y][x] = tempData[y][x];
+                        }
+                        free(tempData[y]);
+                    }
+                    free(tempData);
+
                     freeKernel(kernel);
                     printf("Filtre de convolution appliqué avec succès !\n");
                 }
+
 
                 break;
             }
