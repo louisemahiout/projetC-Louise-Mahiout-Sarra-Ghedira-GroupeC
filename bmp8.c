@@ -125,7 +125,7 @@ void bmp8_printInfo(t_bmp8 * img) {
     printf("Largeur: %u\n", img->width);
     printf("Hauteur: %u\n", img->height);
     printf("Profondeur de l'image en bits: %u\n", img->colorDepth);
-    printf("Taille des données: %u\n", img->dataSize);
+    printf("Taille des donnees: %u\n", img->dataSize);
 }
 
 void bmp8_negative(t_bmp8 * img) {
