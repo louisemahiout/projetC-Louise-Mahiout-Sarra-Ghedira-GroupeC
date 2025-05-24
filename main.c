@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,6 +55,7 @@ int main() {
         printf("8. Appliquer un filtre a l'image couleur\n");
         printf("9. sauvegarder\n");
         printf("10. Quitter\n");
+        printf("11.Histogramme couleur\n");
         printf(">>> Votre choix : ");
         scanf("%d", &choix);
         getchar();
@@ -359,6 +361,15 @@ int main() {
 
     break;
 }
+            case 11:
+                if (image24) {
+                    bmp24_equalize(image24);
+                    printf("Égalisation d’histogramme couleur effectuée avec succès.\n");
+                } else {
+                    printf("Aucune image couleur chargée.\n");
+                }
+            break;
+
             default:
                 printf("Choix invalide. Veuillez réessayer.\n");
         }

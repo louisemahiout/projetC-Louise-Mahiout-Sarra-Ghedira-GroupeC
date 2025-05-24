@@ -1,4 +1,5 @@
 
+
 //
 // Created by louis on 21/04/2025.
 //
@@ -597,4 +598,90 @@ void bmp8_equalize(t_bmp8 *img, unsigned int *hist_eq) {
 
     printf("Egalisation d'histogramme appliquee avec succes !\n");
 }
+#include <math.h>
 
+// Conversion RGB → YUV
+void rgb_to_yuv(uint8_t r, uint8_t g, uint8_t b, uint8_t *y, uint8_t *u, uint8_t *v) {
+    *y = (uint8_t)(0.299 * r + 0.587 * g + 0.114 * b);
+    *u = (uint8_t)(-0.14713 * r - 0.28886 * g + 0.436 * b + 128);
+    *v = (uint8_t)(0.615 * r - 0.51499 * g - 0.10001 * b + 128);
+}
+
+// Conversion YUV → RGB
+void yuv_to_rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t *r, uint8_t *g, uint8_t *b) {
+    float Y = y;
+    float U = u - 128;
+    float V = v - 128;
+
+    int r_ = round(Y + 1.13983 * V);
+    int g_ = round(Y - 0.39465 * U - 0.58060 * V);
+    int b_ = round(Y + 2.03211 * U);
+
+    *r = (uint8_t)(r_ < 0 ? 0 : (r_ > 255 ? 255 : r_));
+    *g = (uint8_t)(g_ < 0 ? 0 : (g_ > 255 ? 255 : g_));
+    *b = (uint8_t)(b_ < 0 ? 0 : (b_ > 255 ? 255 : b_));
+}
+void bmp24_equalize(t_bmp24 *img) {
+    int width = img->width;
+    int height = img->height;
+    int size = width * height;
+
+    unsigned int histogram[256] = {0};
+    unsigned int cdf[256] = {0};
+    unsigned int cdf_min = 0;
+    uint8_t *Y_values = malloc(size);
+    uint8_t *U = malloc(size);
+    uint8_t *V = malloc(size);
+
+    if (!Y_values || !U || !V) {
+        printf("Erreur d'allocation mémoire pour égalisation couleur.\n");
+        return;
+    }
+
+    // Étape 1 : conversion RGB → YUV et histogramme Y
+    int index = 0;
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            t_pixel p = img->data[i][j];
+            uint8_t y, u, v;
+            rgb_to_yuv(p.red, p.green, p.blue, &y, &u, &v);
+            Y_values[index] = y;
+            U[index] = u;
+            V[index] = v;
+            histogram[y]++;
+            index++;
+        }
+    }
+
+    // Étape 2 : calcul CDF
+    unsigned int totalPixels = size;
+    for (int i = 0; i < 256; i++) {
+        cdf[i] = (i == 0) ? histogram[i] : cdf[i - 1] + histogram[i];
+        if (cdf_min == 0 && cdf[i] > 0)
+            cdf_min = cdf[i];
+    }
+
+    // Étape 3 : CDF normalisé (hist_eq)
+    uint8_t hist_eq[256];
+    for (int i = 0; i < 256; i++) {
+        hist_eq[i] = (uint8_t)round(((float)(cdf[i] - cdf_min) / (totalPixels - cdf_min)) * 255);
+    }
+
+    // Étape 4 : appliquer histogramme égalisé + reconversion YUV → RGB
+    index = 0;
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            uint8_t y_eq = hist_eq[Y_values[index]];
+            uint8_t r, g, b;
+            yuv_to_rgb(y_eq, U[index], V[index], &r, &g, &b);
+            img->data[i][j].red = r;
+            img->data[i][j].green = g;
+            img->data[i][j].blue = b;
+            index++;
+        }
+    }
+
+    free(Y_values);
+    free(U);
+    free(V);
+}
