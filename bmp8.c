@@ -1,5 +1,6 @@
 
 
+
 //
 // Created by louis on 21/04/2025.
 //
@@ -10,7 +11,7 @@
 #include <string.h>
 
 
-
+// Partie 1
 t_bmp8 * bmp8_loadImage(const char * filename) { //allouera dynamiquement de la mémoire pour stocker une image de type t_bmp8, initialisera les champs de cette image et retournera un pointeur vers cette image.
     FILE * file=fopen(filename,"rb"); // Étape 1 : ouvrir le fichier en mode binaire ("rb" = read binary)
     if (file==NULL) {
@@ -228,6 +229,8 @@ void bmp8_applyFilter(t_bmp8 *img, float **kernel, int kernelSize) {
 
     printf("Filtre de convolution applique avec succes !\n");
 }
+
+// Partie 2
 t_pixel **bmp24_allocateDataPixels(int width, int height) {
     t_pixel **pixels = malloc(height * sizeof(t_pixel *));
     if (!pixels) {
@@ -528,6 +531,7 @@ void bmp24_applyFilter(t_bmp24 *img, float **kernel, int kernelSize) {
 
     printf("Filtre couleur de convolution applique avec succes !\n");
 }
+// Partie 3
 unsigned int *bmp8_computeHistogram(t_bmp8 *img) {
     if (!img || !img->data) {
         printf("Erreur : image non chargee.\n");

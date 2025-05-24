@@ -1,4 +1,5 @@
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,12 +51,12 @@ int main() {
         printf("4. Sauvegarder l'image\n");
         printf("5. Quitter\n");
         printf("PARTIE 2\n");
-        printf("6. Charger une image couleur\n");
+        printf("6. Ouvrir l'image couleur\n");
         printf("7. Afficher les informations de l'image couleur\n");
         printf("8. Appliquer un filtre a l'image couleur\n");
-        printf("9. sauvegarder\n");
-        printf("10. Quitter\n");
-        printf("11.Histogramme couleur\n");
+        printf("9. Histogramme couleur\n");
+        printf("10. sauvegarder\n");
+        printf("11. Quitter\n");
         printf(">>> Votre choix : ");
         scanf("%d", &choix);
         getchar();
@@ -226,8 +227,123 @@ int main() {
                 }
                 break;
             }
+            case 8: {
+                if (!image24) {
+                    printf("Aucune image couleur chargee.\n");
+                    break;
+                }
 
+                int op;
+                printf("\n-- Traitement de l'image couleur --\n");
+                printf("1. Negatif\n");
+                printf("2. Niveaux de gris\n");
+                printf("3. Luminosite\n");
+                printf("4. Flou\n");
+                printf("5. Flou gaussien\n");
+                printf("6. Contours\n");
+                printf("7. Relief\n");
+                printf("8. Nettete\n");
+                printf(">>> Votre choix : ");
+                scanf("%d", &op);
+
+                float **kernel = NULL;
+
+                switch (op) {
+                       case 1: {
+                           bmp24_negative(image24);
+                           printf("Négatif appliqué.\n");
+                           break;
+                       }
+
+                       case 2: {
+                           bmp24_grayscale(image24);
+                           printf("Niveaux de gris appliqués.\n");
+                           break;
+                       }
+                       case 3: {
+                            int v;
+                            printf("Valeur de luminosité (+/-) : ");
+                            scanf("%d", &v);
+                            bmp24_brightness(image24, v);
+                            printf("Luminosité ajustée.\n");
+                            break;
+                            }
+
+                        case 4: { // Flou box blur
+                            float blur[9] = {
+                             1.0f/9, 1.0f/9, 1.0f/9,
+                             1.0f/9, 1.0f/9, 1.0f/9,
+                             1.0f/9, 1.0f/9, 1.0f/9
+                             };
+                        kernel = allocateKernel(blur);
+                        break;
+                        }
+
+                        case 5: { // Flou gaussien
+                            float gauss[9] = {
+                                1.0f/16, 2.0f/16, 1.0f/16,
+                                2.0f/16, 4.0f/16, 2.0f/16,
+                                1.0f/16, 2.0f/16, 1.0f/16
+                                };
+                        kernel = allocateKernel(gauss);
+                        break;
+                        }
+
+                        case 6: { // Contours
+                            float outline[9] = {
+                                -1, -1, -1,
+                                -1,  8, -1,
+                                -1, -1, -1
+                            };
+                        kernel = allocateKernel(outline);
+                        break;
+                        }
+
+                        case 7: { // Relief
+                            float emboss[9] = {
+                                -2, -1, 0,
+                                -1,  1, 1,
+                                 0,  1, 2
+                            };
+                        kernel = allocateKernel(emboss);
+                        break;
+                        }
+
+                        case 8: { // Netteté
+                            float sharpen[9] = {
+                                0, -1,  0,
+                                -1,  5, -1,
+                                0, -1,  0
+                            };
+                            kernel = allocateKernel(sharpen);
+                            break;
+                            }
+
+                 default:
+                    printf("Option invalide.\n");
+                }
+
+                if (kernel != NULL) {
+                    bmp24_applyFilter(image24, kernel, 3);
+                    freeKernel(kernel);
+                    printf("Filtre de convolution appliqué avec succès !\n");
+                }
+
+                break;
+            }
             case 9: {
+                if (image24) {
+                    bmp24_equalize(image24);
+                    printf("Égalisation d’histogramme couleur effectuée avec succès.\n");
+                } else {
+                    printf("Aucune image couleur chargée.\n");
+                }
+                break;
+
+                default:
+                    printf("Choix invalide. Veuillez réessayer.\n");
+            }
+            case 10: {
                 if (image24) {
                     char nomSortie[256] = CHEMIN_FICHIER_SORTIE;
                     char tmp[256];
@@ -246,132 +362,24 @@ int main() {
                 }
                 break;
             }
-            case 10: {
+            case 11: {
                 if (image24) {
                     bmp24_free(image24);
                     image24 = NULL;
                     printf("Image couleur libérée.\n");
                 } else {
-                    printf("Aucune image à libérer.\n");
+                    printf("Aucune image couleur à libérer.\n");
                 }
-                break;
 
+                if (image) {
+                    bmp8_free(&image);
+                }
 
+                printf("Fermeture du programme.\n");
+                return 0;
             }
-            case 8: {
-    if (!image24) {
-        printf("Aucune image couleur chargee.\n");
-        break;
-    }
 
-    int op;
-    printf("\n-- Traitement de l'image couleur --\n");
-    printf("1. Negatif\n");
-    printf("2. Niveaux de gris\n");
-    printf("3. Luminosite\n");
-    printf("4. Flou\n");
-    printf("5. Flou gaussien\n");
-    printf("6. Contours\n");
-    printf("7. Relief\n");
-    printf("8. Nettete\n");
-    printf(">>> Votre choix : ");
-    scanf("%d", &op);
 
-    float **kernel = NULL;
-
-    switch (op) {
-        case 1:
-            bmp24_negative(image24);
-            printf("Négatif appliqué.\n");
-            break;
-
-        case 2:
-            bmp24_grayscale(image24);
-            printf("Niveaux de gris appliqués.\n");
-            break;
-
-        case 3: {
-            int v;
-            printf("Valeur de luminosité (+/-) : ");
-            scanf("%d", &v);
-            bmp24_brightness(image24, v);
-            printf("Luminosité ajustée.\n");
-            break;
-        }
-
-        case 4: { // Flou box blur
-            float blur[9] = {
-                1.0f/9, 1.0f/9, 1.0f/9,
-                1.0f/9, 1.0f/9, 1.0f/9,
-                1.0f/9, 1.0f/9, 1.0f/9
-            };
-            kernel = allocateKernel(blur);
-            break;
-        }
-
-        case 5: { // Flou gaussien
-            float gauss[9] = {
-                1.0f/16, 2.0f/16, 1.0f/16,
-                2.0f/16, 4.0f/16, 2.0f/16,
-                1.0f/16, 2.0f/16, 1.0f/16
-            };
-            kernel = allocateKernel(gauss);
-            break;
-        }
-
-        case 6: { // Contours
-            float outline[9] = {
-                -1, -1, -1,
-                -1,  8, -1,
-                -1, -1, -1
-            };
-            kernel = allocateKernel(outline);
-            break;
-        }
-
-        case 7: { // Relief
-            float emboss[9] = {
-                -2, -1, 0,
-                -1,  1, 1,
-                 0,  1, 2
-            };
-            kernel = allocateKernel(emboss);
-            break;
-        }
-
-        case 8: { // Netteté
-            float sharpen[9] = {
-                 0, -1,  0,
-                -1,  5, -1,
-                 0, -1,  0
-            };
-            kernel = allocateKernel(sharpen);
-            break;
-        }
-
-        default:
-            printf("Option invalide.\n");
-    }
-
-    if (kernel != NULL) {
-        bmp24_applyFilter(image24, kernel, 3);
-        freeKernel(kernel);
-        printf("Filtre de convolution appliqué avec succès !\n");
-    }
-
-    break;
-}
-            case 11:
-                if (image24) {
-                    bmp24_equalize(image24);
-                    printf("Égalisation d’histogramme couleur effectuée avec succès.\n");
-                } else {
-                    printf("Aucune image couleur chargée.\n");
-                }
-            break;
-
-            default:
-                printf("Choix invalide. Veuillez réessayer.\n");
         }
 
 
