@@ -198,7 +198,6 @@ En cas de filtre invalide (choix non compris entre les options proposées), un m
 4. Sauvegarde de l’image
 L’utilisateur entre un nom de fichier à sauvegarder, concaténé avec un chemin via snprintf(), ce qui prévient les débordements de tampon.
 
-
 Les entrées numériques comme les valeurs de seuil, luminosité, ou numéro de filtre sont saisies en int, mais aucune vérification de plage (intervalle) n’est faite dans tous les cas.
 3-Journal de bord:
 a-Chronologie du projet: 
@@ -213,7 +212,7 @@ a-Chronologie du projet:
 21/05/2025 jusqu'à 24/05/2025: La partie 3 du projet consiste à implémenter l'égalisation d'histogramme, une technique de traitement d’image permettant d'améliorer le contraste, Cela permet d’améliorer visuellement la clarté et la répartition des intensités dans une image:
                                         -Égalisation d’histogramme pour images en niveaux de gris (8 bits) : calculer l’histogramme, sa CDF, et appliquer la transformation.
                                         -Égalisation pour images couleur (24 bits) : convertir l’image en espace YUV, égaliser la composante Y (luminance), puis reconvertir en RGB.
--
+
 b-Répartition des tâches:
 Louise Mahiout: Partie1 / Partie 3: 3.3/ S'occuper de l'interface
 Sarra Ghedira: Partie 2/ Partie 3: 3.4/ Readme
