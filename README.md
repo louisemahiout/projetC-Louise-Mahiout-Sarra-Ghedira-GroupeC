@@ -198,7 +198,6 @@ En cas de filtre invalide (choix non compris entre les options proposées), un m
 4. Sauvegarde de l’image
 L’utilisateur entre un nom de fichier à sauvegarder, concaténé avec un chemin via snprintf(), ce qui prévient les débordements de tampon.
 
-Les entrées numériques comme les valeurs de seuil, luminosité, ou numéro de filtre sont saisies en int, mais aucune vérification de plage (intervalle) n’est faite dans tous les cas.
 3-Journal de bord:
 a-Chronologie du projet: 
 17/03/2025 jusqu'à le 12/04/2025: La partie 1 du projet consiste à implémenter des opérations de base sur les images en niveaux de gris (BMP 8 bits):
