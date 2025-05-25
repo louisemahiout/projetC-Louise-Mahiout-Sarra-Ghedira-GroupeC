@@ -514,11 +514,9 @@ void bmp24_saveImage(t_bmp24 *img, const char *filename) {
     fclose(file);
 }
 
-
 // Applique un effet négatif sur l'image BMP 24 bits
 // Pour chaque pixel, inverse la valeur de chaque composante couleur (R, G, B)
 void bmp24_negative(t_bmp24 *img) {
-    printf("width : %d  height : %d \n", img->width, img->height);
     // Parcours de toutes les colonnes (largeur)
     for (int x = 0; x < img->width; x++) {
         // Parcours de toutes les lignes (hauteur)
@@ -529,6 +527,7 @@ void bmp24_negative(t_bmp24 *img) {
             img->data[x][y].blue  = 255 - img->data[x][y].blue;
         }
     }
+    printf("Filtre apliquee avec succes");
 }
 // Convertit l'image en niveaux de gris
 // Pour chaque pixel, calcule la moyenne des composantes R, G et B et met cette moyenne dans chaque composante
@@ -545,6 +544,7 @@ void bmp24_grayscale(t_bmp24 *img) {
             img->data[y][x].blue = gray;
         }
     }
+    printf("Filtre niveaux de gris applique avec succes !\n");
 }
 // Modifie la luminosité de l'image en ajoutant 'value' à chaque composante couleur
 // value peut être positif (image plus claire) ou négatif (image plus sombre)
@@ -564,11 +564,11 @@ void bmp24_brightness(t_bmp24 *img, int value) {
             img->data[y][x].blue  = (b > 255) ? 255 : (b < 0) ? 0 : b;
         }
     }
+    printf("Filtre de luminosite applique avec succes !\n");
 }
 // Applique une convolution sur le pixel (x, y) de l'image img avec un noyau (kernel) carré
 // Le noyau est une matrice de coefficients de taille kernelSize x kernelSize
 // Retourne un pixel résultant après application du filtre de convolution
-
 t_pixel bmp24_convolution(t_bmp24 *img, int x, int y, float **kernel, int kernelSize) {
     int offset = kernelSize / 2;  // Décalage pour centrer le noyau sur le pixel (x,y)
     float r = 0, g = 0, b = 0;    // Variables pour accumuler les composantes rouge, verte et bleue

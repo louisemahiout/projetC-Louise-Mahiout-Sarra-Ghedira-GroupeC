@@ -1,6 +1,3 @@
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -172,24 +169,20 @@ int main() {
                     switch (filtre) {
                         case 1:
                             bmp24_negative(image24);
-                            printf("Filtre negatif applique avec succes !\n");
                             break;
                         case 2: {
                             int v;
                             printf("Valeur (+/-) : ");
                             scanf("%d", &v);
                             bmp24_brightness(image24, v);
-                            printf("Filtre luminosite applique avec succes !\n");
                             break;
                         }
                         case 3:
                             bmp24_grayscale(image24);
-                            printf("Filtre niveaux de gris applique avec succes !\n");
                             break;
                         case 4: {
                             float blur[9] = {1.0f/9,1.0f/9,1.0f/9, 1.0f/9,1.0f/9,1.0f/9, 1.0f/9,1.0f/9,1.0f/9};
                             kernel = allocateKernel(blur);
-                            printf("Filtre flou applique avec succes !\n");
                             break;
                         }
                         case 5: {
@@ -285,6 +278,6 @@ int main() {
     if (image8) bmp8_free(&image8);
     if (image24) bmp24_free(image24);
 
-    printf("Programme termine. Au revoir !\n");
+    printf("Programme termine. Merci!\n");
     return 0;
 }

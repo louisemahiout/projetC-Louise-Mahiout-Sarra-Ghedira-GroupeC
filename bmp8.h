@@ -69,7 +69,6 @@ typedef struct {
     unsigned int dataSize; //représente la taille des données de l’image en octets (Située à l’offset 34 de l’en-tête).
 } t_bmp8;
 
-
 t_bmp8 *bmp8_loadImage(const char *filename);
 void bmp8_saveImage(const char *filename, t_bmp8 *img);
 void bmp8_printInfo(t_bmp8 *img);
@@ -97,6 +96,4 @@ t_pixel bmp24_convolution(t_bmp24 *img, int x, int y, float **kernel, int kernel
 unsigned int * bmp8_computeHistogram(t_bmp8 * img);
 unsigned int * bmp8_computeCDF(unsigned int * hist);
 void bmp8_equalize(t_bmp8 * img, unsigned int * hist_eq);
-
-
 #endif //BMP8_H
