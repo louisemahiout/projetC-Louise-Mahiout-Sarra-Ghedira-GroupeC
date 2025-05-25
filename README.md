@@ -73,7 +73,7 @@ a-Algorithme:
     5-Quitter
   
   4-Réagir selon le choix utilisateur :
-    1-Afficher les métadonnées de l’image (largeur, hauteur, profondeur):
+    1-Afficher les données de l’image (largeur, hauteur, profondeur):
     Pour une image 8 bits : bmp8_printInfo() est appelée.
     Pour une image 24 bits : les dimensions et la profondeur de couleur sont affichées manuellement.
     2-Ouvrir un sous-menu de filtres :
@@ -125,6 +125,7 @@ a-Algorithme:
         bmp8_free pour les images 8 bits
         bmp24_free pour les images 24 bits
         Afficher un message de fin : "Programme terminé. Au revoir !"
+-L'image sera présente par la suite dans le répertoire de l'ordinateur, après sauvegarde et les modifications sera faites si l'utilisateur à choisi de faire des modifications.
 
 b-Fonction implimenté:
 
@@ -160,7 +161,6 @@ Partie 2:
 -t_bmp24 * bmp24_loadImage (const char * filename): Charge une image couleur 24 bits depuis un fichier BMP/ filename : chemin du fichier BMP/Retourne pointeur vers la structure image chargée.
 -void bmp24_saveImage (t_bmp * img, const char * filename):Sauvegarde une image couleur 24 bits dans un fichier BMP/img : image à sauvegarder, filename : chemin du fichier de sortie.
 
-
 2.5 Fonctionnalités : Traitement d’image 24 bits:
 -void bmp24_negative (t_bmp * img):Applique un filtre négatif à chaque pixel (inversion RGB)/img : image à modifier
 -void bmp24_grayscale (t_bmp * img):Convertit l’image couleur en niveaux de gris (moyenne ou pondération des canaux RGB)/img : image à modifier
@@ -182,9 +182,11 @@ Partie 3:
 -void bmp24_equalize(t_bmp24 *img): Égalise l’histogramme couleur en travaillant sur la luminance (Y dans YUV)/ img : image 24 bits à traiter.
 
 c-Gestion des Entrées et Erreurs :
+
 1. Traitement des valeurs utilisateur
   Le programme utilise scanf() et getchar() pour lire les entrées au clavier. Les menus sont conçus pour proposer des choix clairs à l’utilisateur :
   Des instructions explicites précèdent chaque saisie (ex. : "Valeur de luminosité :").
+
 2. Vérification de validité des entrées
   Quelques vérifications sont effectuées pour éviter les plantages :
   Vérification du choix d’image initial (1 ou 2) : si le choix est invalide, le programme s’arrête avec un message: "Choix invalide. Fin du programme.".
@@ -193,11 +195,13 @@ c-Gestion des Entrées et Erreurs :
   Vérification de l’allocation mémoire :
   Chaque appel à malloc() est suivi d’une vérification (if (!ptr)).
   Des messages d’erreur explicites sont affichés en cas d’échec (ex. : "Erreur d’allocation mémoire pour égalisation couleur").
-3. Gestion de menus et filtres
-Chaque menu propose un retour (9) pour éviter les erreurs de navigation.
-En cas de filtre invalide (choix non compris entre les options proposées), un message d’erreur est affiché : "Filtre invalide.".
-4. Sauvegarde de l’image
-L’utilisateur entre un nom de fichier à sauvegarder, concaténé avec un chemin via snprintf(), ce qui prévient les débordements de tampon.
+ 
+  3. Gestion de menus et filtres
+  Chaque menu propose un retour (9) pour éviter les erreurs de navigation.
+  En cas de filtre invalide (choix non compris entre les options proposées), un message d’erreur est affiché : "Filtre invalide.".
+  
+  4. Sauvegarde de l’image
+  L’utilisateur entre un nom de fichier à sauvegarder, concaténé avec un chemin via snprintf(), ce qui prévient les débordements de tampon.
 
 3-Journal de bord:
 a-Chronologie du projet: 
