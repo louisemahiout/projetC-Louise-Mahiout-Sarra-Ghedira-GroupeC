@@ -253,6 +253,12 @@ int main() {
                 printf("Nom du fichier de sauvegarde (ajoutez .bmp) : ");
                 scanf("%s", nom);
 
+                // Vérification que le nom se termine bien par ".bmp"
+                if (strlen(nom) < 4 || strcmp(nom + strlen(nom) - 4, ".bmp") != 0) {
+                    printf("Erreur : le nom du fichier doit se terminer par .bmp\n");
+                    break;
+                }
+
                 char chemin[512];
                 snprintf(chemin, sizeof(chemin), "%s%s", CHEMIN_FICHIER_SORTIE, nom);
 
@@ -260,10 +266,11 @@ int main() {
                     bmp8_saveImage(chemin, image8);
                 else
                     bmp24_saveImage(image24, chemin);
-                printf("Image enregistre avec succes !\n");
 
+                printf("Image enregistree avec succes !\n");
                 break;
             }
+
 
             case 5: {
                 quitter = 1;

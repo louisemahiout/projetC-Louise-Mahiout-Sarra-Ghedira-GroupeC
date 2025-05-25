@@ -761,4 +761,5 @@ void bmp24_equalize(t_bmp24 *img) {
     free(Y_values);
     free(U);
     free(V);
+    printf("Egalisation d'histogramme appliquee avec succes !\n");
 }
