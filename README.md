@@ -72,7 +72,7 @@ a-Algorithme:
     4-Sauvegarder l’image
     5-Quitter
   
-  Réagir selon le choix utilisateur :
+  4-Réagir selon le choix utilisateur :
     1-Afficher les métadonnées de l’image (largeur, hauteur, profondeur):
     Pour une image 8 bits : bmp8_printInfo() est appelée.
     Pour une image 24 bits : les dimensions et la profondeur de couleur sont affichées manuellement.
@@ -86,6 +86,7 @@ a-Algorithme:
         Contours
         Relief
         Netteté
+
   
       Pour une image couleur :
         Négatif (void bmp24_negative)
@@ -113,13 +114,13 @@ a-Algorithme:
           Égalisation sur Y
           Re-conversion YUV → RGB (bmp24_equalize)
         
-    4-Demander un nom de fichier et sauvegarder l’image modifiée dans le dossier images_sortie.
+    5-Demander un nom de fichier et sauvegarder l’image modifiée dans le dossier images_sortie.
         L’utilisateur entre un nom de fichier.
         L’image (modifiée ou non) est sauvegardée avec :
         bmp8_saveImage() pour une image 8 bits.
         bmp24_saveImage() pour une image 24 bits.
   
-    5-Quitter la boucle et terminer le programme.
+    6-Quitter la boucle et terminer le programme.
         Libérer la mémoire allouée dynamiquement à l’image (grise ou couleur) avec :
         bmp8_free pour les images 8 bits
         bmp24_free pour les images 24 bits
@@ -216,7 +217,8 @@ b-Répartition des tâches:
 Louise Mahiout: Partie1 / Partie 3: 3.3/ S'occuper de l'interface
 Sarra Ghedira: Partie 2/ Partie 3: 3.4/ Readme
 
-4-Tests et Validation:
+
+
 
 
 
