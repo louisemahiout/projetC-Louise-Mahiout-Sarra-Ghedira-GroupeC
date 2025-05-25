@@ -202,6 +202,7 @@ c-Gestion des Entrées et Erreurs :
   
   4. Sauvegarde de l’image
   L’utilisateur entre un nom de fichier à sauvegarder, concaténé avec un chemin via snprintf(), ce qui prévient les débordements de tampon.
+  Lorsque l'utilisateur ne met pas le fichier sous format bmp il lui met erreur.
 
 3-Journal de bord:
 a-Chronologie du projet: 
